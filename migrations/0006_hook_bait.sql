@@ -1,0 +1,1 @@
+ALTER TABLE catches ADD COLUMN hook_bait TEXT NOT NULL DEFAULT '';

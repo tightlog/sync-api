@@ -1,0 +1,17 @@
+{
+  "name": "@tightlog/app-attest",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/app-attest-verify.ts"
+  },
+  "types": "./src/app-attest-verify.ts",
+  "dependencies": {
+    "@peculiar/asn1-schema": "2.8.0",
+    "@peculiar/asn1-x509": "2.8.0",
+    "@peculiar/x509": "2.0.0",
+    "cbor-x": "1.6.4",
+    "reflect-metadata": "0.2.2"
+  }
+}

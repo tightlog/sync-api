@@ -1,0 +1,157 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "tightlog-sync",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-16",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "upload_source_maps": true,
+  "env": {
+    "staging": {
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
+      },
+      "placement": {
+        "mode": "smart"
+      },
+      "observability": {
+        "enabled": true,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 1
+        }
+      },
+      "vars": {
+        "APP_ATTEST_ENV": "development",
+        "SENTRY_ENVIRONMENT": "staging",
+        "SENTRY_TRACES_SAMPLE_RATE": "1.0"
+      },
+      "ratelimits": [
+        {
+          "name": "SYNC_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 300,
+            "period": 60
+          }
+        },
+        {
+          "name": "SYNC_IP_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 600,
+            "period": 60
+          }
+        },
+        {
+          "name": "MEDIA_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 120,
+            "period": 60
+          }
+        },
+        {
+          "name": "ADOPT_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 10,
+            "period": 60
+          }
+        },
+        {
+          "name": "ATTEST_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 60,
+            "period": 60
+          }
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA",
+          "bucket_name": "<r2-bucket>"
+        }
+      ]
+    },
+    "production": {
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA"
+      },
+      "placement": {
+        "mode": "smart"
+      },
+      "observability": {
+        "enabled": true,
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 0.1
+        },
+        "traces": {
+          "enabled": true,
+          "head_sampling_rate": 0.1
+        }
+      },
+      "vars": {
+        "APP_ATTEST_ENV": "production",
+        "SENTRY_ENVIRONMENT": "production",
+        "SENTRY_TRACES_SAMPLE_RATE": "0.1"
+      },
+      "ratelimits": [
+        {
+          "name": "SYNC_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 300,
+            "period": 60
+          }
+        },
+        {
+          "name": "SYNC_IP_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 600,
+            "period": 60
+          }
+        },
+        {
+          "name": "MEDIA_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 120,
+            "period": 60
+          }
+        },
+        {
+          "name": "ADOPT_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 10,
+            "period": 60
+          }
+        },
+        {
+          "name": "ATTEST_RATE_LIMITER",
+          "namespace_id": "<rate-limit-namespace>",
+          "simple": {
+            "limit": 60,
+            "period": 60
+          }
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "MEDIA",
+          "bucket_name": "<r2-bucket>"
+        }
+      ]
+    }
+  }
+}

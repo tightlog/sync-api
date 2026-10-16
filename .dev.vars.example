@@ -1,0 +1,7 @@
+# Turso (libsql) connection for the sync store.
+TURSO_DATABASE_URL=libsql://<your-staging-db>.turso.io
+TURSO_AUTH_TOKEN=
+
+# Clerk secret key. Optional locally: without it, account link + lost-phone
+# adopt return 501 and anonymous key-based sync still works.
+CLERK_SECRET_KEY=
