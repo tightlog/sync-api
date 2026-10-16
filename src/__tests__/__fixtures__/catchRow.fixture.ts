@@ -17,5 +17,6 @@ export function catchRow(
   if (!row) {
     throw new Error(`row ${id} did not sanitize`);
   }
+
   return row;
 }

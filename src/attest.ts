@@ -190,5 +190,6 @@ export async function attestGate(
   if (!(await advanceCounter(db, keyId, newCounter))) {
     return { ok: false, status: 401, error: 'attestation_replay' };
   }
+
   return { ok: true };
 }

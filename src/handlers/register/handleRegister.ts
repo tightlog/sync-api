@@ -48,6 +48,7 @@ export async function handleRegister(
         { status: 409 },
       );
     }
+
     meta.clerkUserId = identity.clerkUserId;
     meta.email = identity.email;
     meta.accountName = identity.accountName;

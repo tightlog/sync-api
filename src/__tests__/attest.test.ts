@@ -43,6 +43,7 @@ function headers(keyId?: string, assertion?: string): Headers {
   if (assertion) {
     result.set('x-attest-assertion', assertion);
   }
+
   return result;
 }
 

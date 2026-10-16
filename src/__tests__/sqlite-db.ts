@@ -9,6 +9,7 @@ function toPlain(columns: string[], row: Row): SqlRow {
   for (const [i, col] of columns.entries()) {
     plain[col] = row[i];
   }
+
   return plain;
 }
 
@@ -41,11 +42,13 @@ export function adaptClient(client: Client): SyncDb {
         for (const s of statements) {
           results.push(await s.all<T>());
         }
+
         await client.execute('COMMIT');
       } catch (error) {
         await client.execute('ROLLBACK');
         throw error;
       }
+
       return results;
     },
   };
@@ -63,5 +66,6 @@ export async function migratedDb(): Promise<{ client: Client; db: SyncDb }> {
     const sql = readFileSync(join(MIGRATIONS_DIR, file), 'utf8');
     await client.executeMultiple(sql);
   }
+
   return { client, db: adaptClient(client) };
 }

@@ -23,5 +23,6 @@ export async function requireKeyHash(
   if (!token) {
     return Response.json({ error: 'unauthorized' }, { status: 401 });
   }
+
   return sha256Hex(token);
 }

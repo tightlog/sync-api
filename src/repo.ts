@@ -274,11 +274,13 @@ export class SyncRepo {
     if (existing) {
       return existing;
     }
+
     await this.insertUserIfMissing(keyHash).run();
     const created = await this.getUserId(keyHash);
     if (!created) {
       throw new Error('user insert returned no id');
     }
+
     return created;
   }
 
@@ -363,6 +365,7 @@ export class SyncRepo {
         rows.push(row);
       }
     }
+
     return { rows, nextSince: boundaryMs };
   }
 
@@ -389,6 +392,7 @@ export class SyncRepo {
     if (basenames.length === 0) {
       return new Set();
     }
+
     const placeholders = basenames.map(() => '?').join(', ');
     const result = await this.db
       .prepare(
@@ -407,6 +411,7 @@ export class SyncRepo {
     if (candidates.length === 0) {
       return [];
     }
+
     const placeholders = candidates.map(() => '?').join(', ');
     const result = await this.db
       .prepare(
@@ -425,6 +430,7 @@ export class SyncRepo {
     if (basenames.length === 0) {
       return;
     }
+
     const placeholders = basenames.map(() => '?').join(', ');
     await this.db
       .prepare(

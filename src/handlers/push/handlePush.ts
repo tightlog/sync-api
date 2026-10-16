@@ -22,10 +22,12 @@ export async function handlePush(
   if (!isSyncTable(table)) {
     return Response.json({ error: 'unknown_table' }, { status: 404 });
   }
+
   const outdated = schemaVersionError(request);
   if (outdated) {
     return outdated;
   }
+
   const keyHash = await authenticate(request, env, env.SYNC_RATE_LIMITER);
   if (keyHash instanceof Response) {
     return keyHash;

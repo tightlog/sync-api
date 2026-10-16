@@ -31,6 +31,7 @@ export async function collectOrphanedMedia(
   if (orphaned.length === 0) {
     return;
   }
+
   await repo.deleteMediaObjects(userId, orphaned);
   await Promise.allSettled(
     orphaned.map(basename => bucket.delete(mediaKey(userId, basename))),

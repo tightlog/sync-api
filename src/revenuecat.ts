@@ -32,6 +32,7 @@ function isUnexpired(
   if (expires === null || expires === undefined) {
     return true;
   }
+
   const expiresMs = Date.parse(expires);
   return Number.isFinite(expiresMs) && expiresMs > nowMs;
 }
@@ -69,9 +70,11 @@ export function ownsActiveSubscription(
     if (txn === null || txn === undefined) {
       return false;
     }
+
     if (String(txn) !== storeTransactionId) {
       return false;
     }
+
     return isUnexpired(subscription.expires_date, nowMs);
   });
 }

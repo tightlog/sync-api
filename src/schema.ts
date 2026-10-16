@@ -12,5 +12,6 @@ export function schemaVersionError(request: Request): Response | null {
   if (!Number.isInteger(version) || version < MIN_SUPPORTED_SCHEMA_VERSION) {
     return Response.json({ error: 'schema_outdated' }, { status: 426 });
   }
+
   return null;
 }

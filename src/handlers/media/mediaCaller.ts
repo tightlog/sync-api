@@ -11,10 +11,12 @@ export async function mediaCaller(
   if (!bucket) {
     return Response.json({ error: 'media_unavailable' }, { status: 503 });
   }
+
   const keyHash = await authenticate(request, env, env.MEDIA_RATE_LIMITER);
   if (keyHash instanceof Response) {
     return keyHash;
   }
+
   const repo = new SyncRepo(getDb(env));
   const userId = await repo.ensureUserId(keyHash);
   return { userId, bucket, repo };

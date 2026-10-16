@@ -49,6 +49,7 @@ describe('SyncRepo.listSince paging', () => {
     for (const suffix of ['a', 'b', 'c']) {
       rows.push(catchRow(`boundary-${suffix}`, boundaryMs));
     }
+
     await repo.upsertRows('catches', KEY, rows);
 
     const { rows: catches, nextSince } = await repo.listSince(

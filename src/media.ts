@@ -33,6 +33,7 @@ export function parseBasename(basename: string): ParsedBasename | null {
   if (!contentType) {
     return null;
   }
+
   return { sha256: match[1], contentType };
 }
 

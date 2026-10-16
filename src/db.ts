@@ -25,6 +25,7 @@ function plainRowsFromResult(res: ResultSet): SqlRow[] {
     for (let i = 0; i < columns.length; i++) {
       plain[columns[i]] = row[i];
     }
+
     return plain;
   });
 }
@@ -90,10 +91,12 @@ export function getDb(env: Env): SyncDb {
   if (!url) {
     throw new Error('TURSO_DATABASE_URL is not set');
   }
+
   const key = `${url}\0${env.TURSO_AUTH_TOKEN ?? ''}`;
   if (singleton?.key === key) {
     return singleton.db;
   }
+
   const db = new LibsqlDb(
     createClient({ url, authToken: env.TURSO_AUTH_TOKEN }),
   );

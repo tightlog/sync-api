@@ -9,5 +9,6 @@ export function timingSafeEqualBytes(a: Bytes, b: Bytes): boolean {
   for (let i = 0; i < a.byteLength; i += 1) {
     diff |= a[i] ^ b[i];
   }
+
   return diff === 0;
 }

@@ -33,6 +33,7 @@ export async function handleAttestRegister(
     if (e instanceof AttestError) {
       return Response.json({ error: 'attestation' }, { status: 401 });
     }
+
     throw e;
   }
 }

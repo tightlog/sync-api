@@ -15,6 +15,7 @@ function clerkClient(secretKey: string): ReturnType<typeof createClerkClient> {
     client = createClerkClient({ secretKey });
     clerkClients.set(secretKey, client);
   }
+
   return client;
 }
 
@@ -38,10 +39,12 @@ export const clerkService = {
       if (!payload.sub) {
         return Response.json({ error: 'unauthorized' }, { status: 401 });
       }
+
       sub = payload.sub;
     } catch {
       return Response.json({ error: 'unauthorized' }, { status: 401 });
     }
+
     try {
       const user = await clerkClient(secretKey).users.getUser(sub);
       const email =

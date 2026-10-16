@@ -150,6 +150,7 @@ export async function verifyAssertion(
   } catch {
     throw new AttestError('assertion is not valid CBOR');
   }
+
   if (
     !(assertion.signature instanceof Uint8Array) ||
     !(assertion.authenticatorData instanceof Uint8Array)

@@ -64,6 +64,7 @@ export async function handleMediaPut(
   } catch {
     return Response.json({ error: 'checksum_mismatch' }, { status: 422 });
   }
+
   if (!stored) {
     return Response.json({ error: 'upload_failed' }, { status: 500 });
   }

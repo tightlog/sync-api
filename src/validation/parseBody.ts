@@ -15,6 +15,7 @@ export async function parseBody<T>(
     if (length.reason === 'too_large') {
       return Response.json({ error: 'payload_too_large' }, { status: 413 });
     }
+
     if (opts?.requireContentLength) {
       return Response.json(
         { error: 'content_length_required' },

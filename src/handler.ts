@@ -121,6 +121,7 @@ export const handler = {
           { status: 503 },
         );
       }
+
       return Response.json({ error: 'internal_error' }, { status: 500 });
     }
   },

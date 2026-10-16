@@ -251,6 +251,7 @@ describe('syncRowFromDb', () => {
     for (const [i, column] of columns.entries()) {
       dbRow[column] = sanitized.values[i];
     }
+
     expect(syncRowFromDb('sessions', dbRow)).toEqual<SyncRow>(input);
   });
 });

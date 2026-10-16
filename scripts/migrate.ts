@@ -45,6 +45,7 @@ for (const file of files) {
     console.log(`skipping ${file} (already applied)`);
     continue;
   }
+
   const sql = readFileSync(join(migrationsDir, file), 'utf8');
   const statements = sql
     .replaceAll(/--[^\n]*/g, '')

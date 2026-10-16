@@ -23,6 +23,7 @@ export async function handleAdopt(
   if (body instanceof Response) {
     return body;
   }
+
   const { clerkToken } = body;
   if (!clerkToken) {
     return Response.json({ error: 'clerk_token_required' }, { status: 400 });
@@ -60,5 +61,6 @@ export async function handleAdopt(
   if (!linked) {
     return Response.json({ error: 'no_linked_identity' }, { status: 404 });
   }
+
   return adoptIdentity(repo, linked, keyHash);
 }

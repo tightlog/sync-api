@@ -76,6 +76,7 @@ function boundedInt(column: string, max: number): Field {
       if (typeof value !== 'number' || !Number.isFinite(value)) {
         return 0;
       }
+
       return Math.min(Math.max(Math.trunc(value), 0), max);
     },
     fromDb: value => (typeof value === 'number' ? value : 0),

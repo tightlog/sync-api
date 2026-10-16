@@ -15,6 +15,7 @@
     "worker": true
   },
   "rules": {
+    "style/blank-line-after-block": "error",
     "eqeqeq": [
       "error",
       "always",

@@ -13,10 +13,12 @@ export async function handleEscrowKey(
   if (keyHash instanceof Response) {
     return keyHash;
   }
+
   const secret = env.KEY_ESCROW_SECRET;
   if (!secret) {
     return Response.json({ error: 'not_configured' }, { status: 501 });
   }
+
   const token = extractSyncKey(request);
   if (!token) {
     return Response.json({ error: 'unauthorized' }, { status: 401 });

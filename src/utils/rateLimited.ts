@@ -10,6 +10,7 @@ export async function rateLimited(
   if (!limiter) {
     return null;
   }
+
   const { success } = await limiter.limit({ key: keyHash });
   return success
     ? null

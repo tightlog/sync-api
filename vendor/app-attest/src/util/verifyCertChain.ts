@@ -14,6 +14,7 @@ export async function verifyCertChain(
       'attestation x5c entries must hold leaf + intermediate',
     );
   }
+
   if (!x5c.every(der => der instanceof Uint8Array)) {
     throw new AttestError('attestation x5c entries must be byte strings');
   }
@@ -61,5 +62,6 @@ export async function verifyCertChain(
       );
     }
   }
+
   return chain[0];
 }

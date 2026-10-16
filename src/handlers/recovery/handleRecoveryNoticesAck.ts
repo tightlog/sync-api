@@ -23,10 +23,12 @@ export async function handleRecoveryNoticesAck(
   if (body instanceof Response) {
     return body;
   }
+
   const ids = (body.ids ?? []).filter(id => id !== '');
 
   if (ids.length > 0) {
     await new SyncRepo(getDb(env)).markRecoveryNoticesRead(keyHash, ids).run();
   }
+
   return Response.json({ ok: true });
 }
