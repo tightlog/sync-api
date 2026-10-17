@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { SqlRow } from './db';
 import type { SyncRow } from './types';
 
-export const MAX_PUSH_ROWS = 100;
+export const MAX_PUSH_ROWS = 500;
 export const MAX_FUTURE_SKEW_MS = 60_000;
 
 const MAX_STRING = 10_000;
