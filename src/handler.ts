@@ -5,6 +5,7 @@ import { handleAttestChallenge } from './handlers/attest/handleAttestChallenge';
 import { handleAttestRegister } from './handlers/attest/handleAttestRegister';
 import { handleEscrowKey } from './handlers/escrow/handleEscrowKey';
 import { handleEscrowKeyDelete } from './handlers/escrow/handleEscrowKeyDelete';
+import { handleHealth } from './handlers/health/handleHealth';
 import { handleIdentityProbe } from './handlers/identity/handleIdentityProbe';
 import { handleMediaGet } from './handlers/media/handleMediaGet';
 import { handleMediaPut } from './handlers/media/handleMediaPut';
@@ -45,7 +46,7 @@ async function dispatch(
   const { method } = request;
 
   if (pathname === '/health') {
-    return Response.json({ ok: true });
+    return handleHealth(env);
   }
 
   if (

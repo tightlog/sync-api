@@ -19,6 +19,7 @@
     "@libsql/client": "0.14.0",
     "@sentry/cloudflare": "10.67.0",
     "@tightlog/app-attest": "file:./vendor/app-attest",
+    "@tightlog/worker-utils": "file:./vendor/worker-utils",
     "reflect-metadata": "0.2.2",
     "zod": "4.6.1"
   },

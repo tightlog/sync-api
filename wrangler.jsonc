@@ -30,7 +30,10 @@
       "vars": {
         "APP_ATTEST_ENV": "development",
         "SENTRY_ENVIRONMENT": "staging",
-        "SENTRY_TRACES_SAMPLE_RATE": "1.0"
+        "SENTRY_TRACES_SAMPLE_RATE": "1.0",
+        "DEPLOYED_AT": "unknown",
+        "DEPLOYED_BY": "unknown",
+        "GIT_SHA": "unknown"
       },
       "ratelimits": [
         {
@@ -102,7 +105,10 @@
       "vars": {
         "APP_ATTEST_ENV": "production",
         "SENTRY_ENVIRONMENT": "production",
-        "SENTRY_TRACES_SAMPLE_RATE": "0.1"
+        "SENTRY_TRACES_SAMPLE_RATE": "0.1",
+        "DEPLOYED_AT": "unknown",
+        "DEPLOYED_BY": "unknown",
+        "GIT_SHA": "unknown"
       },
       "ratelimits": [
         {
