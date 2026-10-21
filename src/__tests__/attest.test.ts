@@ -22,7 +22,11 @@ beforeEach(async () => {
   ({ client, db } = await migratedDb());
 });
 
-function env(overrides: Partial<Env> = {}): Env {
+type EnvOverrides = {
+  [K in keyof Env]?: Env[K];
+};
+
+function env(overrides: EnvOverrides = {}): Env {
   return {
     TURSO_DATABASE_URL: 'libsql://test',
     SENTRY_ENVIRONMENT: 'test',
@@ -31,6 +35,16 @@ function env(overrides: Partial<Env> = {}): Env {
     APP_ATTEST_BUNDLE_IDS: 'com.example.app',
     ...overrides,
   };
+}
+
+function envWithout(...keys: (keyof Env)[]): Env {
+  const next = env();
+
+  for (const key of keys) {
+    delete next[key];
+  }
+
+  return next;
 }
 
 function headers(keyId?: string, assertion?: string): Headers {
@@ -56,7 +70,7 @@ async function addKey(keyId: string, counter: number): Promise<void> {
 
 async function challengeCount(): Promise<number> {
   const res = await client.execute('SELECT COUNT(*) FROM attest_challenges');
-  return Number(res.rows[0][0]);
+  return Number(res.rows[0]?.[0] ?? 0);
 }
 
 describe('adoptPurchaseChallenge', () => {
@@ -91,12 +105,7 @@ describe('attestGate', () => {
 
   test('treats an unset environment as production', async () => {
     expect(
-      await attestGate(
-        env({ APP_ATTEST_ENV: undefined }),
-        db,
-        headers(),
-        input,
-      ),
+      await attestGate(envWithout('APP_ATTEST_ENV'), db, headers(), input),
     ).toEqual<GateResult>({
       ok: false,
       status: 401,
@@ -106,7 +115,7 @@ describe('attestGate', () => {
 
   test('fails closed in production when attestation is not configured', async () => {
     expect(
-      await attestGate(env({ APPLE_TEAM_ID: undefined }), db, headers(), input),
+      await attestGate(envWithout('APPLE_TEAM_ID'), db, headers(), input),
     ).toEqual<GateResult>({
       ok: false,
       status: 503,

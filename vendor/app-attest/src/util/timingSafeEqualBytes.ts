@@ -7,7 +7,9 @@ export function timingSafeEqualBytes(a: Bytes, b: Bytes): boolean {
 
   let diff = 0;
   for (let i = 0; i < a.byteLength; i += 1) {
-    diff |= a[i] ^ b[i];
+    const left = a[i] ?? 0;
+    const right = b[i] ?? 0;
+    diff |= left ^ right;
   }
 
   return diff === 0;

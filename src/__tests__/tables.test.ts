@@ -244,12 +244,13 @@ describe('syncRowFromDb', () => {
     const sanitized = sanitizeRow('sessions', input)!;
     const columns = dataColumns('sessions');
     const dbRow: SqlRow = {};
-    dbRow.id = sanitized.id;
-    dbRow.updated_at_ms = sanitized.updatedAtMs;
-    dbRow.deleted_at = sanitized.deletedAt;
+    dbRow['id'] = sanitized.id;
+    dbRow['updated_at_ms'] = sanitized.updatedAtMs;
+    dbRow['deleted_at'] = sanitized.deletedAt;
 
     for (const [i, column] of columns.entries()) {
-      dbRow[column] = sanitized.values[i];
+      dbRow[column] =
+        sanitized.values[i] === undefined ? null : sanitized.values[i];
     }
 
     expect(syncRowFromDb('sessions', dbRow)).toEqual<SyncRow>(input);

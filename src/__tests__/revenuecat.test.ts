@@ -11,7 +11,11 @@ const NOW = Date.parse('2026-07-27T12:00:00.000Z');
 const APP_USER_ID = '$RCAnonymousID:8f3c2b1a4d5e6f708192a3b4c5d6e7f8';
 const TXN = '1000000652379790';
 
-function env(overrides: Partial<Env> = {}): Env {
+type EnvOverrides = {
+  [K in keyof Env]?: Env[K];
+};
+
+function env(overrides: EnvOverrides = {}): Env {
   return {
     TURSO_DATABASE_URL: 'libsql://test',
     SENTRY_DSN: '',
@@ -19,6 +23,16 @@ function env(overrides: Partial<Env> = {}): Env {
     REVENUECAT_SECRET_API_KEY: 'sk_test',
     ...overrides,
   };
+}
+
+function envWithout(...keys: (keyof Env)[]): Env {
+  const next = env();
+
+  for (const key of keys) {
+    delete next[key];
+  }
+
+  return next;
 }
 
 function statusOf(result: true | Response): number | null {
@@ -147,7 +161,7 @@ describe('ownsActiveSubscription', () => {
 describe('verifyPurchaseIdentity', () => {
   test('is unconfigured without the secret rather than open', async () => {
     const result = await revenueCatService.verifyPurchaseIdentity(
-      env({ REVENUECAT_SECRET_API_KEY: undefined }),
+      envWithout('REVENUECAT_SECRET_API_KEY'),
       APP_USER_ID,
       TXN,
       NOW,
@@ -232,7 +246,12 @@ describe('verifyPurchaseIdentity', () => {
     );
     expect(result).toBe(true);
 
-    const [url, init] = fetchSpy.mock.calls[0];
+    const firstCall = fetchSpy.mock.calls[0];
+    if (firstCall === undefined) {
+      throw new Error('expected a RevenueCat fetch');
+    }
+
+    const [url, init] = firstCall;
 
     expect(url).toBe(
       'https://api.revenuecat.com/v1/subscribers/%24RCAnonymousID%3A8f3c2b1a4d5e6f708192a3b4c5d6e7f8',

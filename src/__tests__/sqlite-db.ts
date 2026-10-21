@@ -7,7 +7,8 @@ import type { BindValue, SqlRow, SyncDb, SyncStatement } from '../db';
 function toPlain(columns: string[], row: Row): SqlRow {
   const plain: SqlRow = {};
   for (const [i, col] of columns.entries()) {
-    plain[col] = row[i];
+    const value = row[i];
+    plain[col] = value === undefined ? null : value;
   }
 
   return plain;

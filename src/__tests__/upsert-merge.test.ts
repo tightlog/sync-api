@@ -29,7 +29,7 @@ async function speciesOf(id: string): Promise<string | null> {
 
 async function rowCount(table: string): Promise<number> {
   const res = await client.execute(`SELECT COUNT(*) FROM ${table}`);
-  return Number(res.rows[0][0]);
+  return Number(res.rows[0]?.[0] ?? 0);
 }
 
 async function lastSyncedAt(keyHash: string): Promise<string | null> {
@@ -47,7 +47,12 @@ describe('the merge rule', () => {
     ]);
 
     expect(merged.length).toBe(1);
-    expect(syncRowFromDb('catches', merged[0]).species).toEqual('Tench');
+    const first = merged[0];
+    if (first === undefined) {
+      throw new Error('expected a merged row');
+    }
+
+    expect(syncRowFromDb('catches', first)['species']).toEqual('Tench');
     expect(await rowCount('catches')).toBe(1);
   });
 
@@ -71,7 +76,12 @@ describe('the merge rule', () => {
     ]);
 
     expect(await speciesOf('c1')).toEqual('Bream');
-    expect(syncRowFromDb('catches', merged[0]).species).toEqual('Bream');
+    const first = merged[0];
+    if (first === undefined) {
+      throw new Error('expected a merged row');
+    }
+
+    expect(syncRowFromDb('catches', first)['species']).toEqual('Bream');
   });
 
   test('an equal-stamp push loses the tie, so a replay cannot flip a value', async () => {
@@ -103,8 +113,14 @@ describe('replaying a push', () => {
 
     const second = await repo.upsertRows('catches', KEY, rows);
 
-    expect(syncRowFromDb('catches', second[0])).toEqual(
-      syncRowFromDb('catches', first[0]),
+    const secondRow = second[0];
+    const firstRow = first[0];
+    if (secondRow === undefined || firstRow === undefined) {
+      throw new Error('expected merged rows');
+    }
+
+    expect(syncRowFromDb('catches', secondRow)).toEqual(
+      syncRowFromDb('catches', firstRow),
     );
   });
 
@@ -119,7 +135,7 @@ describe('replaying a push', () => {
 
     const res = await client.execute('SELECT deleted_at FROM catches');
     expect(res.rows.length).toBe(1);
-    expect(res.rows[0][0]).toEqual('2026-08-19T10:00:00.000Z');
+    expect(res.rows[0]?.[0]).toEqual('2026-08-19T10:00:00.000Z');
   });
 });
 
@@ -136,7 +152,7 @@ describe('one identity cannot reach another', () => {
     expect(await rowCount('catches')).toBe(2);
     const { rows } = await repo.listSince('catches', KEY, 0);
     expect(rows.length).toBe(1);
-    expect(rows[0].species).toEqual('Mine');
+    expect(rows[0]?.['species']).toEqual('Mine');
   });
 });
 
@@ -155,7 +171,7 @@ describe('a push the Worker cannot store', () => {
       catchRow('c1', 1000),
     ]);
 
-    expect(merged.map(row => row.id)).toEqual(['c1']);
+    expect(merged.map(row => row['id'])).toEqual(['c1']);
   });
 });
 
@@ -167,7 +183,7 @@ describe('large pushes', () => {
 
     const merged = await repo.upsertRows('catches', KEY, rows);
 
-    expect(new Set(merged.map(row => row.id))).toEqual(
+    expect(new Set(merged.map(row => row['id']))).toEqual(
       new Set(rows.map(row => row.id)),
     );
 

@@ -88,7 +88,11 @@ function syncSelectColumns(table: SyncTable): string {
 }
 
 export class SyncRepo {
-  constructor(private readonly db: SyncDb) {}
+  private readonly db: SyncDb;
+
+  constructor(db: SyncDb) {
+    this.db = db;
+  }
 
   async getOrCreateUser(keyHash: string): Promise<SyncUser> {
     const existing = await this.db
@@ -343,7 +347,12 @@ export class SyncRepo {
     }
 
     // SAFETY: updated_at_ms is an INTEGER column, and the SELECT above reads it.
-    const boundaryMs = rows.at(-1)?.updated_at_ms as number;
+    const boundaryMs = rows.at(-1)?.['updated_at_ms'] as number;
+    const firstRow = rows[0];
+    if (!firstRow) {
+      return { rows, nextSince: null };
+    }
+
     // SAFETY: user_id is a TEXT column, and the page above selects it.
     const group = await this.db
       .prepare(
@@ -352,16 +361,16 @@ export class SyncRepo {
          ORDER BY id ASC
          LIMIT ?`,
       )
-      .bind(rows[0].user_id as string, boundaryMs, MAX_BOUNDARY_COHORT)
+      .bind(firstRow['user_id'] as string, boundaryMs, MAX_BOUNDARY_COHORT)
       .all();
 
     if (group.results.length >= MAX_BOUNDARY_COHORT) {
       throw new Error('sync_boundary_overflow');
     }
 
-    const seen = new Set(rows.map(row => row.id));
+    const seen = new Set(rows.map(row => row['id']));
     for (const row of group.results) {
-      if (!seen.has(row.id)) {
+      if (!seen.has(row['id'])) {
         rows.push(row);
       }
     }

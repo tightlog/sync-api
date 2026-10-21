@@ -23,7 +23,9 @@ if (files.length === 0) {
   process.exit(1);
 }
 
-const client = createClient({ url, authToken });
+const client = createClient(
+  authToken === undefined ? { url } : { url, authToken },
+);
 
 await client.execute(
   `CREATE TABLE IF NOT EXISTS _migrations (
@@ -34,7 +36,7 @@ await client.execute(
 
 const applied = new Set(
   (await client.execute('SELECT name FROM _migrations')).rows.map(
-    row => row.name as string,
+    row => row['name'] as string,
   ),
 );
 

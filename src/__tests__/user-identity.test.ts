@@ -71,8 +71,8 @@ describe('SyncRepo.setKeyEscrow', () => {
       sql: 'SELECT key_escrow, key_escrow_updated_at FROM users WHERE id = ?',
       args: [user.id],
     });
-    expect(row.rows[0][0]).toBe('iv.ciphertext');
-    expect(row.rows[0][1]).not.toBeNull();
+    expect(row.rows[0]?.[0]).toBe('iv.ciphertext');
+    expect(row.rows[0]?.[1]).not.toBeNull();
   });
 
   test('clearing with null wipes both the ciphertext and the timestamp', async () => {
@@ -85,8 +85,8 @@ describe('SyncRepo.setKeyEscrow', () => {
       sql: 'SELECT key_escrow, key_escrow_updated_at FROM users WHERE id = ?',
       args: [user.id],
     });
-    expect(row.rows[0][0]).toBeNull();
-    expect(row.rows[0][1]).toBeNull();
+    expect(row.rows[0]?.[0]).toBeNull();
+    expect(row.rows[0]?.[1]).toBeNull();
   });
 });
 
@@ -100,7 +100,7 @@ describe('recovery notices', () => {
 
     const before = await repo.listUnreadRecoveryNotices(OLD_KEY);
     expect(before).toHaveLength(1);
-    expect(before[0].kind).toBe('account_relinked');
+    expect(before[0]?.kind).toBe('account_relinked');
 
     await repo.markRecoveryNoticesRead(OLD_KEY, ['notice-1']).run();
 

@@ -15,6 +15,10 @@ export function derSignatureToRaw(der: Bytes): Bytes {
     }
 
     const len = der[offset++];
+    if (len === undefined) {
+      throw new AttestError('truncated DER integer');
+    }
+
     let bytes = der.subarray(offset, offset + len);
     offset += len;
     while (bytes.length > 0 && bytes[0] === 0x00) {

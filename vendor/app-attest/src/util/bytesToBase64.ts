@@ -4,7 +4,12 @@ export function bytesToBase64(bytes: Bytes): string {
   let binary = '';
 
   for (let i = 0; i < bytes.byteLength; i += 1) {
-    binary += String.fromCharCode(bytes[i]);
+    const code = bytes[i];
+    if (code === undefined) {
+      break;
+    }
+
+    binary += String.fromCharCode(code);
   }
 
   return btoa(binary);

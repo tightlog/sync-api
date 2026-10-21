@@ -75,8 +75,9 @@ async function dispatch(
 
   const mediaMatch = MEDIA_PATH.exec(pathname);
 
-  if (mediaMatch) {
-    const basename = decodeURIComponent(mediaMatch[1]);
+  const mediaBasename = mediaMatch?.[1];
+  if (mediaBasename) {
+    const basename = decodeURIComponent(mediaBasename);
 
     if (method === 'PUT') {
       return handleMediaPut(request, env, basename);
@@ -88,9 +89,10 @@ async function dispatch(
   }
 
   const tableMatch = TABLE_PATH.exec(pathname);
+  const tableName = tableMatch?.[1];
 
-  if (tableMatch) {
-    const table = decodeURIComponent(tableMatch[1]);
+  if (tableName) {
+    const table = decodeURIComponent(tableName);
 
     if (method === 'GET') {
       return handlePull(request, env, table, url);

@@ -172,11 +172,13 @@ export function sanitizeRow(
   row: SyncRowInput,
   nowMs?: number,
 ): SanitizedRow | null {
-  const id = typeof row.id === 'string' ? row.id.slice(0, 128) : '';
+  const idValue = row['id'];
+  const id = typeof idValue === 'string' ? idValue.slice(0, 128) : '';
 
+  const updatedAtValue = row['updatedAt'];
   let updatedAtMs =
-    typeof row.updatedAt === 'number' && Number.isFinite(row.updatedAt)
-      ? Math.trunc(row.updatedAt)
+    typeof updatedAtValue === 'number' && Number.isFinite(updatedAtValue)
+      ? Math.trunc(updatedAtValue)
       : null;
 
   if (!id || updatedAtMs === null || updatedAtMs <= 0) {
@@ -190,27 +192,30 @@ export function sanitizeRow(
     }
   }
 
+  const deletedAtValue = row['deletedAt'];
   return {
     id,
     updatedAtMs,
-    deletedAt: typeof row.deletedAt === 'string' ? clip(row.deletedAt) : null,
+    deletedAt: typeof deletedAtValue === 'string' ? clip(deletedAtValue) : null,
     values: fields(table).map(([name, field]) => field.toDb(row[name])),
   };
 }
 
 export function syncRowFromDb(table: SyncTable, dbRow: SqlRow): SyncRow {
+  const idValue = dbRow['id'];
+  const updatedAtMs = dbRow['updated_at_ms'];
   const syncRow: SyncRow = {
-    id: typeof dbRow.id === 'string' ? dbRow.id : '',
-    updatedAt:
-      typeof dbRow.updated_at_ms === 'number' ? dbRow.updated_at_ms : 0,
+    id: typeof idValue === 'string' ? idValue : '',
+    updatedAt: typeof updatedAtMs === 'number' ? updatedAtMs : 0,
   };
 
   for (const [name, field] of fields(table)) {
-    syncRow[name] = field.fromDb(dbRow[field.column]);
+    const columnValue = dbRow[field.column];
+    syncRow[name] = field.fromDb(columnValue ?? null);
   }
 
-  syncRow.deletedAt =
-    typeof dbRow.deleted_at === 'string' ? dbRow.deleted_at : null;
+  const deletedAt = dbRow['deleted_at'];
+  syncRow['deletedAt'] = typeof deletedAt === 'string' ? deletedAt : null;
   return syncRow;
 }
 

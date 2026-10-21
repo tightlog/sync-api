@@ -29,12 +29,18 @@ export function parseBasename(basename: string): ParsedBasename | null {
     return null;
   }
 
-  const contentType = CONTENT_TYPES.get(match[2]);
+  const sha256 = match[1];
+  const ext = match[2];
+  if (sha256 === undefined || ext === undefined) {
+    return null;
+  }
+
+  const contentType = CONTENT_TYPES.get(ext);
   if (!contentType) {
     return null;
   }
 
-  return { sha256: match[1], contentType };
+  return { sha256, contentType };
 }
 
 export function isMediaBasename(value: string): boolean {

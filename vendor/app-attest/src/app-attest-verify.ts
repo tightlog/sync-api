@@ -123,9 +123,13 @@ export async function verifyAttestation(
     throw new AttestError('credential id does not match keyId');
   }
 
-  const bundleId = bundleIds.find((_, i) =>
-    timingSafeEqualBytes(appIdHashes[i], auth.rpIdHash),
-  );
+  const bundleId = bundleIds.find((_, i) => {
+    const candidateAppIdHash = appIdHashes[i];
+    return (
+      candidateAppIdHash !== undefined &&
+      timingSafeEqualBytes(candidateAppIdHash, auth.rpIdHash)
+    );
+  });
 
   if (!bundleId) {
     throw new AttestError('rpIdHash matches none of the allowed app ids');

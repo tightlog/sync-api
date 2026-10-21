@@ -23,7 +23,12 @@ function plainRowsFromResult(res: ResultSet): SqlRow[] {
   return rows.map(row => {
     const plain: SqlRow = {};
     for (let i = 0; i < columns.length; i++) {
-      plain[columns[i]] = row[i];
+      const column = columns[i];
+      if (column === undefined) {
+        continue;
+      }
+
+      plain[column] = row[i] ?? null;
     }
 
     return plain;
@@ -31,11 +36,15 @@ function plainRowsFromResult(res: ResultSet): SqlRow[] {
 }
 
 class LibsqlStatement implements SyncStatement {
-  constructor(
-    private readonly client: Client,
-    readonly sql: string,
-    readonly args: BindValue[] = [],
-  ) {}
+  private readonly client: Client;
+  readonly sql: string;
+  readonly args: BindValue[];
+
+  constructor(client: Client, sql: string, args: BindValue[] = []) {
+    this.client = client;
+    this.sql = sql;
+    this.args = args;
+  }
 
   bind(...args: BindValue[]): LibsqlStatement {
     return new LibsqlStatement(this.client, this.sql, args);
@@ -64,7 +73,11 @@ class LibsqlStatement implements SyncStatement {
 }
 
 class LibsqlDb implements SyncDb {
-  constructor(private readonly client: Client) {}
+  private readonly client: Client;
+
+  constructor(client: Client) {
+    this.client = client;
+  }
 
   prepare(sql: string): SyncStatement {
     return new LibsqlStatement(this.client, sql);
@@ -98,7 +111,10 @@ export function getDb(env: Env): SyncDb {
   }
 
   const db = new LibsqlDb(
-    createClient({ url, authToken: env.TURSO_AUTH_TOKEN }),
+    createClient({
+      url,
+      authToken: env.TURSO_AUTH_TOKEN,
+    }),
   );
   singleton = { key, db };
   return db;

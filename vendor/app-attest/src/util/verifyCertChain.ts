@@ -30,8 +30,13 @@ export async function verifyCertChain(
     throw new AttestError('attestation x5c is not a valid certificate');
   }
 
+  const leaf = chain[0];
+  if (!leaf) {
+    throw new AttestError('attestation chain is empty');
+  }
+
   const builder = new x509.X509ChainBuilder({ certificates: [...chain, root] });
-  const built = await builder.build(chain[0]);
+  const built = await builder.build(leaf);
   const terminal = built.at(-1);
   if (!terminal) {
     throw new AttestError('attestation chain is empty');
@@ -63,5 +68,5 @@ export async function verifyCertChain(
     }
   }
 
-  return chain[0];
+  return leaf;
 }

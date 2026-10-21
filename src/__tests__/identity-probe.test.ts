@@ -30,7 +30,7 @@ describe('SyncRepo.getIdentitySummary', () => {
     await repo.getIdentitySummary(KEY);
 
     const count = await client.execute('SELECT COUNT(*) FROM users');
-    expect(Number(count.rows[0][0])).toBe(0);
+    expect(Number(count.rows[0]?.[0] ?? 0)).toBe(0);
   });
 
   test('reports a known key with its live catch count', async () => {
