@@ -14,13 +14,19 @@ import type { SyncRow } from '../types';
 describe('isSyncTable', () => {
   test('accepts the synced tables and nothing else', () => {
     expect(isSyncTable('catches')).toBe(true);
+
     expect(isSyncTable('spots')).toBe(true);
+
     expect(isSyncTable('sessions')).toBe(true);
+
     expect(isSyncTable('catch_media')).toBe(true);
 
     expect(isSyncTable('users')).toBe(false);
+
     expect(isSyncTable('media_objects')).toBe(false);
+
     expect(isSyncTable('devices')).toBe(false);
+
     expect(isSyncTable('')).toBe(false);
   });
 });
@@ -28,11 +34,17 @@ describe('isSyncTable', () => {
 describe('sanitizeRow', () => {
   test('rejects rows without usable data', () => {
     expect(sanitizeRow('catches', syncRowSchema.parse(null))).toBeNull();
+
     expect(sanitizeRow('catches', syncRowSchema.parse('nope'))).toBeNull();
+
     expect(sanitizeRow('catches', {})).toBeNull();
+
     expect(sanitizeRow('catches', { id: 'a' })).toBeNull();
+
     expect(sanitizeRow('catches', { id: '', updatedAt: 5 })).toBeNull();
+
     expect(sanitizeRow('catches', { id: 'a', updatedAt: 0 })).toBeNull();
+
     expect(sanitizeRow('catches', { id: 'a', updatedAt: NaN })).toBeNull();
   });
 
@@ -108,14 +120,20 @@ describe('sanitizeRow', () => {
       }),
     );
     expect(row).not.toBeNull();
+
     expect(row!.updatedAtMs).toBe(1750000000000);
+
     expect(row!.deletedAt).toBeNull();
     const columns = dataColumns('catches');
     const value = (column: string) => row!.values[columns.indexOf(column)];
     expect(value('species')).toBe('');
+
     expect(value('weight_kg')).toBeNull();
+
     expect(value('released')).toBe(0);
+
     expect(value('landed')).toBe(1);
+
     expect(value('pinned')).toBe(0);
   });
 
@@ -137,6 +155,7 @@ describe('sanitizeRow', () => {
       name: 'y'.repeat(50_000),
     });
     expect(row!.deletedAt).toHaveLength(10_000);
+
     expect(row!.values[0]).toHaveLength(10_000);
   });
 

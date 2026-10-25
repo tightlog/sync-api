@@ -176,6 +176,7 @@ describe('challenges', () => {
     const challenge = await issueChallenge(db, NOW);
 
     expect(await consumeChallenge(db, challenge, NOW + 1)).toBe(true);
+
     expect(await consumeChallenge(db, challenge, NOW + 2)).toBe(false);
   });
 
@@ -200,6 +201,7 @@ describe('challenges', () => {
 describe('advanceCounter', () => {
   test('accepts a higher counter', async () => {
     await addKey('k1', 3);
+
     expect(await advanceCounter(db, 'k1', 4)).toBe(true);
   });
 
@@ -207,10 +209,89 @@ describe('advanceCounter', () => {
     await addKey('k1', 3);
 
     expect(await advanceCounter(db, 'k1', 3)).toBe(false);
+
     expect(await advanceCounter(db, 'k1', 2)).toBe(false);
   });
 
   test('refuses an unknown key', async () => {
     expect(await advanceCounter(db, 'missing', 1)).toBe(false);
+  });
+});
+
+function playEnv(): Env {
+  return env({
+    PLAY_PACKAGE_NAMES: 'com.example.app',
+    PLAY_CERT_SHA256: 'ab'.repeat(32),
+    PLAY_INTEGRITY_SERVICE_ACCOUNT: '{"client_email":"a@b.c"}',
+  });
+}
+
+describe('play integrity', () => {
+  const input = adoptPurchaseChallenge('$RCAnonymousID:abc', 'k'.repeat(64));
+
+  test('a platform header is not attestation', async () => {
+    expect(
+      await attestGate(
+        env(),
+        db,
+        new Headers({ 'x-platform': 'android' }),
+        input,
+      ),
+    ).toEqual<GateResult>({
+      ok: false,
+      status: 401,
+      error: 'attestation_required',
+    });
+  });
+
+  test('refuses a play token in development when Play Integrity is not configured', async () => {
+    expect(
+      await attestGate(
+        env({ APP_ATTEST_ENV: 'development' }),
+        db,
+        new Headers({ 'x-play-integrity': 'token' }),
+        input,
+      ),
+    ).toEqual<GateResult>({
+      ok: false,
+      status: 503,
+      error: 'attestation_unavailable',
+    });
+  });
+
+  test('binds the token to the request and refuses a replay', async () => {
+    const seen: string[] = [];
+    const verifyPlayIntegrity = (options: { requestHash: string }) => {
+      seen.push(options.requestHash);
+      return Promise.resolve({ ok: true as const, tokenHash: 'hash-1' });
+    };
+    const playHeaders = new Headers({ 'x-play-integrity': 'token' });
+
+    expect(
+      await attestGate(playEnv(), db, playHeaders, input, {
+        verifyPlayIntegrity,
+      }),
+    ).toEqual<GateResult>({ ok: true });
+
+    const digest = await crypto.subtle.digest(
+      'SHA-256',
+      new TextEncoder().encode(input),
+    );
+
+    expect(seen).toEqual([
+      Array.from(new Uint8Array(digest), byte =>
+        byte.toString(16).padStart(2, '0'),
+      ).join(''),
+    ]);
+
+    expect(
+      await attestGate(playEnv(), db, playHeaders, input, {
+        verifyPlayIntegrity,
+      }),
+    ).toEqual<GateResult>({
+      ok: false,
+      status: 401,
+      error: 'play_integrity_replay',
+    });
   });
 });

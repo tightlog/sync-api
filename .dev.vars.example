@@ -15,6 +15,9 @@ KEY_ESCROW_SECRET=
 
 # Apple App Attest. Required when APP_ATTEST_ENV=production.
 APPLE_TEAM_ID=
+# Google Play Integrity. Deploy uploads these as Worker secrets, not wrangler vars.
+PLAY_INTEGRITY_SERVICE_ACCOUNT=
+PLAY_CERT_SHA256=
 # Comma-separated iOS bundle ids allowed to attest.
 APP_ATTEST_BUNDLE_IDS=
 # development = attest optional when the client sends no headers.

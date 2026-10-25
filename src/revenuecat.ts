@@ -25,6 +25,27 @@ export function isStoreTransactionId(value: string): boolean {
   return STORE_TRANSACTION_ID_PATTERN.test(value);
 }
 
+/**
+ * Own sync key, or `E2E_REVENUECAT_APP_USER_ID` when that variable is set.
+ * Any other id lets the first writer own purchase restore.
+ */
+export function canClaimRevenueCatId(
+  revenueCatAppUserId: string | null | undefined,
+  keyHash: string,
+  pinnedAppUserId?: string | null,
+): revenueCatAppUserId is string {
+  if (!revenueCatAppUserId || !isAppUserId(revenueCatAppUserId)) {
+    return false;
+  }
+
+  if (revenueCatAppUserId === keyHash) {
+    return true;
+  }
+
+  const pinned = pinnedAppUserId?.trim();
+  return pinned != null && pinned.length > 0 && revenueCatAppUserId === pinned;
+}
+
 function isUnexpired(
   expires: string | null | undefined,
   nowMs: number,
@@ -52,8 +73,7 @@ export function hasActiveEntitlement(
 }
 
 /**
- * The caller must hold a store transaction id that currently backs an active
- * subscription for this customer. Knowing the app user id alone is not enough.
+ * `storeTransactionId` must match an active subscription on this customer.
  */
 export function ownsActiveSubscription(
   body: SubscriberResponse,

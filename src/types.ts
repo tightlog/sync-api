@@ -14,10 +14,14 @@ export interface Env {
   CLERK_SECRET_KEY?: string;
   CLERK_JWT_KEY?: string;
   REVENUECAT_SECRET_API_KEY?: string;
+  E2E_REVENUECAT_APP_USER_ID?: string;
   KEY_ESCROW_SECRET?: string;
   APPLE_TEAM_ID?: string;
   APP_ATTEST_BUNDLE_IDS?: string;
   APP_ATTEST_ENV?: string;
+  PLAY_PACKAGE_NAMES?: string;
+  PLAY_CERT_SHA256?: string;
+  PLAY_INTEGRITY_SERVICE_ACCOUNT?: string;
   SENTRY_DSN?: string;
   SENTRY_ENVIRONMENT: string;
   SENTRY_TRACES_SAMPLE_RATE?: string;

@@ -4,6 +4,13 @@ import {
   verifyAttestation,
 } from '@tightlog/app-attest';
 import type { AppAttestEnv } from '@tightlog/app-attest';
+import {
+  PLAY_INTEGRITY_HEADER,
+  PLAY_INTEGRITY_MAX_AGE_MS,
+  PLAY_INTEGRITY_TOKEN_MAX_LENGTH,
+  playIntegritySettings,
+  verifyPlayIntegrityToken,
+} from '@tightlog/worker-utils';
 import type { SyncDb } from './db';
 import type { Env } from './types';
 import { sha256Hex } from './utils/sha256Hex';
@@ -14,9 +21,6 @@ function attestEnv(env: Env): AppAttestEnv {
   return env.APP_ATTEST_ENV === 'development' ? 'development' : 'production';
 }
 
-/**
- * production,testflight or internal app variants
- */
 function allowedBundleIds(env: Env): string[] {
   return (env.APP_ATTEST_BUNDLE_IDS ?? '')
     .split(',')
@@ -135,17 +139,91 @@ export type GateResult =
   | { ok: true }
   | { ok: false; status: 401 | 503; error: string };
 
+type GateDeps = {
+  nowMs?: number;
+  verifyPlayIntegrity?: typeof verifyPlayIntegrityToken;
+};
+
+async function claimPlayToken(
+  db: SyncDb,
+  tokenHash: string,
+  now: number,
+): Promise<boolean> {
+  await db
+    .prepare('DELETE FROM play_integrity_seen WHERE seen_at < ?')
+    .bind(now - PLAY_INTEGRITY_MAX_AGE_MS)
+    .run();
+  const inserted = await db
+    .prepare(
+      `INSERT INTO play_integrity_seen (token_hash, seen_at) VALUES (?, ?)
+       ON CONFLICT (token_hash) DO NOTHING
+       RETURNING token_hash`,
+    )
+    .bind(tokenHash, now)
+    .first();
+  return inserted !== null;
+}
+
+async function gatePlayIntegrity(
+  env: Env,
+  db: SyncDb,
+  token: string,
+  requestHash: string,
+  deps: GateDeps | undefined,
+): Promise<GateResult> {
+  if (token.length > PLAY_INTEGRITY_TOKEN_MAX_LENGTH) {
+    return { ok: false, status: 401, error: 'attestation_malformed' };
+  }
+
+  const settings = playIntegritySettings(env);
+  if (!settings) {
+    return { ok: false, status: 503, error: 'attestation_unavailable' };
+  }
+
+  const now = deps?.nowMs ?? Date.now();
+  const verify = deps?.verifyPlayIntegrity ?? verifyPlayIntegrityToken;
+  const verdict = await verify({
+    token,
+    requestHash,
+    packageNames: settings.packageNames,
+    certificateDigests: settings.certificateDigests,
+    serviceAccountJson: settings.serviceAccountJson,
+    nowMs: now,
+  });
+  if (!verdict.ok) {
+    return { ok: false, status: verdict.status, error: verdict.error };
+  }
+
+  if (!(await claimPlayToken(db, verdict.tokenHash, now))) {
+    return { ok: false, status: 401, error: 'play_integrity_replay' };
+  }
+
+  return { ok: true };
+}
+
 export async function attestGate(
   env: Env,
   db: SyncDb,
   headers: Headers,
   challengeInput: string,
+  deps?: GateDeps,
 ): Promise<GateResult> {
   const keyId = headers.get('x-attest-key-id');
   const assertion = headers.get('x-attest-assertion');
+  const playToken = headers.get(PLAY_INTEGRITY_HEADER);
 
-  if ((!keyId || !assertion) && !attestRequired(env)) {
+  if ((!keyId || !assertion) && !playToken && !attestRequired(env)) {
     return { ok: true };
+  }
+
+  if (playToken && !(keyId && assertion)) {
+    return gatePlayIntegrity(
+      env,
+      db,
+      playToken,
+      await sha256Hex(challengeInput),
+      deps,
+    );
   }
 
   const teamId = env.APPLE_TEAM_ID;

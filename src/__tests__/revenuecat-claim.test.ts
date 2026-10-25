@@ -67,6 +67,7 @@ describe('SyncRepo.claimRevenueCatId', () => {
     await repo.claimRevenueCatId('H2', '$RCAnonymousID:0000000000000000').run();
 
     expect((await repo.getUserByRevenueCatId(RC))?.id).toBe('H1');
+
     expect(
       (await repo.getUserByRevenueCatId('$RCAnonymousID:0000000000000000'))?.id,
     ).toBe('H2');

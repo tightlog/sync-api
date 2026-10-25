@@ -53,6 +53,7 @@ describe('the merge rule', () => {
     }
 
     expect(syncRowFromDb('catches', first)['species']).toEqual('Tench');
+
     expect(await rowCount('catches')).toBe(1);
   });
 
@@ -135,6 +136,7 @@ describe('replaying a push', () => {
 
     const res = await client.execute('SELECT deleted_at FROM catches');
     expect(res.rows.length).toBe(1);
+
     expect(res.rows[0]?.[0]).toEqual('2026-08-19T10:00:00.000Z');
   });
 });
@@ -152,6 +154,7 @@ describe('one identity cannot reach another', () => {
     expect(await rowCount('catches')).toBe(2);
     const { rows } = await repo.listSince('catches', KEY, 0);
     expect(rows.length).toBe(1);
+
     expect(rows[0]?.['species']).toEqual('Mine');
   });
 });
@@ -163,6 +166,7 @@ describe('a push the Worker cannot store', () => {
 
   test('a row with no usable stamp is dropped', () => {
     expect(sanitizeRow('catches', { id: 'c1', updatedAt: 0 })).toBeNull();
+
     expect(sanitizeRow('catches', { id: 'c1', updatedAt: -1 })).toBeNull();
   });
 
@@ -188,6 +192,7 @@ describe('large pushes', () => {
     );
 
     expect(await rowCount('catches')).toBe(150);
+
     expect(await lastSyncedAt(KEY)).not.toBeNull();
   });
 
@@ -195,7 +200,9 @@ describe('large pushes', () => {
     const merged = await repo.upsertRows('catches', KEY, []);
 
     expect(merged).toEqual([]);
+
     expect(await rowCount('users')).toBe(0);
+
     expect(await rowCount('catches')).toBe(0);
   });
 });

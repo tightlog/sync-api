@@ -16,6 +16,7 @@ describe('parseBasename', () => {
       sha256: HASH,
       contentType: 'image/jpeg',
     });
+
     expect(parseBasename(`${HASH}.mp4`)).toEqual<ParsedBasename>({
       sha256: HASH,
       contentType: 'video/mp4',
@@ -24,20 +25,27 @@ describe('parseBasename', () => {
 
   test('rejects anything that is not a full SHA-256 stem', () => {
     expect(parseBasename('photo.jpg')).toBeNull();
+
     expect(parseBasename(`${'a'.repeat(63)}.jpg`)).toBeNull();
+
     expect(parseBasename(`${'a'.repeat(65)}.jpg`)).toBeNull();
+
     expect(parseBasename(`${HASH.toUpperCase()}.jpg`)).toBeNull();
+
     expect(parseBasename(HASH)).toBeNull();
   });
 
   test('rejects extensions we would not know how to serve', () => {
     expect(parseBasename(`${HASH}.exe`)).toBeNull();
+
     expect(parseBasename(`${HASH}.svg`)).toBeNull();
   });
 
   test('rejects names that could escape the user prefix', () => {
     expect(parseBasename(`../${HASH}.jpg`)).toBeNull();
+
     expect(parseBasename(`other-user/${HASH}.jpg`)).toBeNull();
+
     expect(isMediaBasename(`${HASH}/../../etc.jpg`)).toBe(false);
   });
 });

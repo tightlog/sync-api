@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import {
+  canClaimRevenueCatId,
   hasActiveEntitlement,
   isAppUserId,
   ownsActiveSubscription,
@@ -67,17 +68,52 @@ function stubFetch(response: Response | Error) {
     );
 }
 
+describe('canClaimRevenueCatId', () => {
+  const keyHash = 'a'.repeat(64);
+
+  test('claims the caller sync key', () => {
+    expect(canClaimRevenueCatId(keyHash, keyHash, null)).toBe(true);
+  });
+
+  test('rejects an id that is not the sync key', () => {
+    expect(canClaimRevenueCatId('tightlog-e2e-purchase', keyHash, null)).toBe(
+      false,
+    );
+  });
+
+  test('claims the pinned e2e customer', () => {
+    expect(
+      canClaimRevenueCatId(
+        'tightlog-e2e-purchase',
+        keyHash,
+        'tightlog-e2e-purchase',
+      ),
+    ).toBe(true);
+  });
+
+  test('does not treat a blank pin as a match', () => {
+    expect(canClaimRevenueCatId('tightlog-e2e-purchase', keyHash, '  ')).toBe(
+      false,
+    );
+  });
+});
+
 describe('isAppUserId', () => {
   test('accepts the shapes RevenueCat actually mints', () => {
     expect(isAppUserId(APP_USER_ID)).toBe(true);
+
     expect(isAppUserId('user_2abc.DEF-123@example.com')).toBe(true);
   });
 
   test('rejects anything that could steer the request elsewhere', () => {
     expect(isAppUserId('../subscribers/someone-else')).toBe(false);
+
     expect(isAppUserId('has space')).toBe(false);
+
     expect(isAppUserId('short')).toBe(false);
+
     expect(isAppUserId('a'.repeat(129))).toBe(false);
+
     expect(isAppUserId('')).toBe(false);
   });
 });
@@ -178,6 +214,7 @@ describe('verifyPurchaseIdentity', () => {
       NOW,
     );
     expect(statusOf(result)).toBe(400);
+
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -190,6 +227,7 @@ describe('verifyPurchaseIdentity', () => {
       NOW,
     );
     expect(statusOf(result)).toBe(400);
+
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
@@ -256,6 +294,7 @@ describe('verifyPurchaseIdentity', () => {
     expect(url).toBe(
       'https://api.revenuecat.com/v1/subscribers/%24RCAnonymousID%3A8f3c2b1a4d5e6f708192a3b4c5d6e7f8',
     );
+
     expect(new Headers(init?.headers).get('authorization')).toBe(
       'Bearer sk_test',
     );

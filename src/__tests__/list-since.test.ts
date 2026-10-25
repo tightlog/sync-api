@@ -23,6 +23,7 @@ describe('SyncRepo.listSince paging', () => {
     const { rows, nextSince } = await repo.listSince('catches', KEY, 0);
 
     expect(rows.map(row => row['id'])).toEqual(['r0', 'r1', 'r2', 'r3', 'r4']);
+
     expect(nextSince).toBeNull();
   });
 
@@ -36,6 +37,7 @@ describe('SyncRepo.listSince paging', () => {
     const { rows, nextSince } = await repo.listSince('catches', KEY, 100);
 
     expect(rows.map(row => row['id'])).toEqual(['new']);
+
     expect(nextSince).toBeNull();
   });
 
@@ -61,9 +63,13 @@ describe('SyncRepo.listSince paging', () => {
     expect(nextSince).toBe(boundaryMs);
     const ids = catches.map(row => row['id']);
     expect(new Set(ids).size).toBe(ids.length);
+
     expect(ids).toContain('boundary-a');
+
     expect(ids).toContain('boundary-b');
+
     expect(ids).toContain('boundary-c');
+
     expect(catches.length).toBe(PULL_PAGE_SIZE - 1 + 3);
 
     const { rows: rest } = await repo.listSince('catches', KEY, boundaryMs);
@@ -79,6 +85,7 @@ describe('SyncRepo.listSince paging', () => {
       0,
     );
     expect(rows).toEqual([]);
+
     expect(nextSince).toBeNull();
   });
 });

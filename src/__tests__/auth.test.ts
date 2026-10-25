@@ -9,9 +9,13 @@ describe('isSyncKey', () => {
 
   test('rejects malformed keys', () => {
     expect(isSyncKey('')).toBe(false);
+
     expect(isSyncKey('logbook-key-')).toBe(false);
+
     expect(isSyncKey(`logbook-key-${'a1'.repeat(31)}`)).toBe(false);
+
     expect(isSyncKey(`logbook-key-${'G1'.repeat(32)}`)).toBe(false);
+
     expect(isSyncKey('eyJhbGciOiJSUzI1NiJ9.x.y')).toBe(false);
   });
 });

@@ -1,8 +1,5 @@
 import type { RateLimit } from '../types';
 
-/**
- * Rate limit a given request
- */
 export async function rateLimited(
   limiter: RateLimit | undefined,
   keyHash: string,

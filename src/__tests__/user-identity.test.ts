@@ -27,7 +27,9 @@ describe('SyncRepo.getOrCreateUser', () => {
     const second = await repo.getOrCreateUser(OLD_KEY);
 
     expect(second.id).toBe(first.id);
+
     expect(second.keyHash).toBe(OLD_KEY);
+
     expect(await idsInTable()).toHaveLength(1);
   });
 
@@ -47,7 +49,9 @@ describe('SyncRepo.getOrCreateUser', () => {
     const returning = await repo.getOrCreateUser(OLD_KEY);
 
     expect(returning.id).not.toBe(original.id);
+
     expect(returning.keyHash).toBe(OLD_KEY);
+
     expect(await idsInTable()).toHaveLength(2);
   });
 
@@ -72,6 +76,7 @@ describe('SyncRepo.setKeyEscrow', () => {
       args: [user.id],
     });
     expect(row.rows[0]?.[0]).toBe('iv.ciphertext');
+
     expect(row.rows[0]?.[1]).not.toBeNull();
   });
 
@@ -86,6 +91,7 @@ describe('SyncRepo.setKeyEscrow', () => {
       args: [user.id],
     });
     expect(row.rows[0]?.[0]).toBeNull();
+
     expect(row.rows[0]?.[1]).toBeNull();
   });
 });
@@ -100,6 +106,7 @@ describe('recovery notices', () => {
 
     const before = await repo.listUnreadRecoveryNotices(OLD_KEY);
     expect(before).toHaveLength(1);
+
     expect(before[0]?.kind).toBe('account_relinked');
 
     await repo.markRecoveryNoticesRead(OLD_KEY, ['notice-1']).run();

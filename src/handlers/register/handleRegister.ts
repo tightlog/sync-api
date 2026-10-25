@@ -1,7 +1,7 @@
 import { getDb } from '../../db';
 import type { UserMeta } from '../../repo';
 import { SyncRepo } from '../../repo';
-import { isAppUserId } from '../../revenuecat';
+import { canClaimRevenueCatId } from '../../revenuecat';
 import { clerkService } from '../../services/clerk-service';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
@@ -58,12 +58,12 @@ export async function handleRegister(
 
   const { revenueCatAppUserId } = input;
 
-  // Only the device's own sync identity hash may be claimed. Arbitrary ids
-  // would let a first writer poison purchase restore for someone else.
   if (
-    revenueCatAppUserId &&
-    isAppUserId(revenueCatAppUserId) &&
-    revenueCatAppUserId === keyHash
+    canClaimRevenueCatId(
+      revenueCatAppUserId,
+      keyHash,
+      env.E2E_REVENUECAT_APP_USER_ID,
+    )
   ) {
     statements.push(repo.claimRevenueCatId(user.id, revenueCatAppUserId));
   }
