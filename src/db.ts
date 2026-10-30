@@ -97,25 +97,22 @@ class LibsqlDb implements SyncDb {
   }
 }
 
-let singleton: { key: string; db: SyncDb } | undefined;
-
+/**
+ * Build one client per request. A client shared at module level queues
+ * queries behind its concurrency limit, and Workers cannot resolve one
+ * request's I/O from another request's context. The runtime then cancels
+ * the waiting request as hung and Cloudflare returns a 500.
+ */
 export function getDb(env: Env): SyncDb {
   const url = env.TURSO_DATABASE_URL?.replace(/^libsql:\/\//, 'https://');
   if (!url) {
     throw new Error('TURSO_DATABASE_URL is not set');
   }
 
-  const key = `${url}\0${env.TURSO_AUTH_TOKEN ?? ''}`;
-  if (singleton?.key === key) {
-    return singleton.db;
-  }
-
-  const db = new LibsqlDb(
+  return new LibsqlDb(
     createClient({
       url,
       authToken: env.TURSO_AUTH_TOKEN,
     }),
   );
-  singleton = { key, db };
-  return db;
 }
