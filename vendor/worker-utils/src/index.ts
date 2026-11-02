@@ -14,3 +14,9 @@ export type {
   PlayIntegritySettings,
   PlayIntegrityVerdict,
 } from './play-integrity';
+export { confusionOf, detectionMetrics, wilsonRate } from './detection-metrics';
+export type {
+  ConfusionCounts,
+  DetectionMetrics,
+  Rate,
+} from './detection-metrics';
