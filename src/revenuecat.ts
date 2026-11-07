@@ -72,9 +72,6 @@ export function hasActiveEntitlement(
   );
 }
 
-/**
- * `storeTransactionId` must match an active subscription on this customer.
- */
 export function ownsActiveSubscription(
   body: SubscriberResponse,
   storeTransactionId: string,

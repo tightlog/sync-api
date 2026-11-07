@@ -96,7 +96,7 @@ function oneOf(
   };
 }
 
-// Field name → column codec. Order is the bind / SELECT column order.
+// Key order is the bind and SELECT column order.
 const TABLE_FIELDS = {
   catches: {
     species: text('species'),

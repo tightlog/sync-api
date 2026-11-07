@@ -48,9 +48,9 @@ const UPSERT_CHUNK = 50;
 export const PULL_PAGE_SIZE = 200;
 
 /**
- * Cap for the same-timestamp boundary expansion. A page ends on a timestamp;
- * every row at that ms must travel together so the cursor does not skip. Without
- * a limit, a bulk stamp at one ms can blow memory.
+ * Cap for the same-timestamp boundary expansion. A page ends on a timestamp.
+ * Every row at that ms must be in the same page, or the cursor skips rows.
+ * Without a limit, a bulk stamp at one ms can use too much memory.
  */
 export const MAX_BOUNDARY_COHORT = 2_000;
 
