@@ -8,6 +8,7 @@ import {
   PLAY_INTEGRITY_HEADER,
   PLAY_INTEGRITY_MAX_AGE_MS,
   PLAY_INTEGRITY_TOKEN_MAX_LENGTH,
+  commaList,
   playIntegritySettings,
   verifyPlayIntegrityToken,
 } from '@tightlog/worker-utils';
@@ -22,10 +23,7 @@ function attestEnv(env: Env): AppAttestEnv {
 }
 
 function allowedBundleIds(env: Env): string[] {
-  return (env.APP_ATTEST_BUNDLE_IDS ?? '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+  return commaList(env.APP_ATTEST_BUNDLE_IDS);
 }
 
 export function attestConfigured(env: Env): boolean {

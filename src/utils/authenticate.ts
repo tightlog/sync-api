@@ -1,7 +1,6 @@
 import { requireKeyHash } from '../auth';
 import type { Env, RateLimit } from '../types';
-import { clientIp } from './clientIp';
-import { rateLimited } from './rateLimited';
+import { clientIp, rateLimited } from '@tightlog/worker-utils';
 
 export async function authenticate(
   request: Request,

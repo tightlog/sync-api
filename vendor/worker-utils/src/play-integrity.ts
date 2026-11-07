@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { commaList } from './comma-list';
 
 export const PLAY_INTEGRITY_HEADER = 'x-play-integrity';
 
@@ -60,13 +61,6 @@ type CachedToken = {
 };
 
 let cachedToken: CachedToken | null = null;
-
-function commaList(value: string | undefined): string[] {
-  return (value ?? '')
-    .split(',')
-    .map(item => item.trim())
-    .filter(Boolean);
-}
 
 function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = '';

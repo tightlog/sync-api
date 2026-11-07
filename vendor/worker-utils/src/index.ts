@@ -20,3 +20,18 @@ export type {
   DetectionMetrics,
   Rate,
 } from './detection-metrics';
+export { handleHealth } from './health';
+export type { HealthEnv } from './health';
+export { checkContentLength, tooLargeByHeader } from './request-size';
+export type { ContentLengthCheck } from './request-size';
+export { readJsonBody } from './request-body';
+export type {
+  ErrorResponder,
+  JsonBodyResult,
+  ReadJsonBodyOptions,
+} from './request-body';
+export { commaList } from './comma-list';
+export { clientIp, rateLimited } from './rate-limit';
+export type { RateLimit } from './rate-limit';
+export { workerSentryOptions } from './sentry';
+export type { SentryEnv, WorkerSentryPolicy } from './sentry';

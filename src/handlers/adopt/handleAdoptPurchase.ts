@@ -5,7 +5,7 @@ import { SyncRepo } from '../../repo';
 import { revenueCatService } from '../../services/revenuecat-service';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
-import { rateLimited } from '../../utils/rateLimited';
+import { rateLimited } from '@tightlog/worker-utils';
 import { adoptPurchaseSchema } from '../../validation/adopt';
 import { parseBody } from '../../validation/parseBody';
 import { metaBodyLimit } from '../../validation/register';

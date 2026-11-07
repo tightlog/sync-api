@@ -5,7 +5,7 @@ import { handleAttestChallenge } from './handlers/attest/handleAttestChallenge';
 import { handleAttestRegister } from './handlers/attest/handleAttestRegister';
 import { handleEscrowKey } from './handlers/escrow/handleEscrowKey';
 import { handleEscrowKeyDelete } from './handlers/escrow/handleEscrowKeyDelete';
-import { handleHealth } from './handlers/health/handleHealth';
+import { clientIp, handleHealth, rateLimited } from '@tightlog/worker-utils';
 import { handleIdentityProbe } from './handlers/identity/handleIdentityProbe';
 import { handleMediaGet } from './handlers/media/handleMediaGet';
 import { handleMediaPut } from './handlers/media/handleMediaPut';
@@ -16,8 +16,6 @@ import { handleRecoveryNoticesAck } from './handlers/recovery/handleRecoveryNoti
 import { handleRecoveryNoticesPull } from './handlers/recovery/handleRecoveryNoticesPull';
 import { handleRegister } from './handlers/register/handleRegister';
 import type { Env } from './types';
-import { clientIp } from './utils/clientIp';
-import { rateLimited } from './utils/rateLimited';
 
 const MEDIA_PATH = /^\/v1\/sync\/media\/([^/]+)$/;
 const TABLE_PATH = /^\/v1\/sync\/([^/]+)$/;
