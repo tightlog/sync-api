@@ -1,3 +1,4 @@
+import { json } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import type { Env } from '../../types';
@@ -16,5 +17,5 @@ export async function handleEscrowKeyDelete(
   const user = await repo.getOrCreateUser(keyHash);
   await repo.setKeyEscrow(user.id, null).run();
 
-  return Response.json({ ok: true });
+  return json({ ok: true });
 }

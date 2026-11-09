@@ -1,5 +1,4 @@
 import { json } from './json';
-import type { ErrorResponder } from './request-body';
 
 export interface RateLimit {
   limit(options: { key: string }): Promise<{ success: boolean }>;
@@ -12,12 +11,11 @@ export function clientIp(request: Request): string {
 export async function rateLimited(
   limiter: RateLimit | undefined,
   key: string,
-  respond: ErrorResponder = json,
 ): Promise<Response | null> {
   if (!limiter) {
     return null;
   }
 
   const { success } = await limiter.limit({ key });
-  return success ? null : respond({ error: 'rate_limited' }, 429);
+  return success ? null : json({ error: 'rate_limited' }, 429);
 }

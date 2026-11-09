@@ -1,118 +1,18 @@
-import { createClient } from '@libsql/client/web';
-import type { Client, ResultSet, Value } from '@libsql/client/web';
 import type { Env } from './types';
+import { createLibsqlDb } from '@tightlog/worker-utils/libsql';
+import type {
+  BindValue,
+  Db,
+  SqlRow,
+  Statement,
+} from '@tightlog/worker-utils/libsql';
 
-export type BindValue = string | number | null;
+export type { BindValue, SqlRow };
 
-export type SqlRow = Record<string, Value>;
+export type SyncStatement = Statement;
 
-export interface SyncStatement {
-  bind(...args: BindValue[]): SyncStatement;
-  first<T = SqlRow>(): Promise<T | null>;
-  run(): Promise<void>;
-  all<T = SqlRow>(): Promise<{ results: T[] }>;
-}
+export type SyncDb = Db;
 
-export interface SyncDb {
-  prepare(sql: string): SyncStatement;
-  batch<T = SqlRow>(statements: SyncStatement[]): Promise<{ results: T[] }[]>;
-}
-
-function plainRowsFromResult(res: ResultSet): SqlRow[] {
-  const { columns, rows } = res;
-  return rows.map(row => {
-    const plain: SqlRow = {};
-    for (let i = 0; i < columns.length; i++) {
-      const column = columns[i];
-      if (column === undefined) {
-        continue;
-      }
-
-      plain[column] = row[i] ?? null;
-    }
-
-    return plain;
-  });
-}
-
-class LibsqlStatement implements SyncStatement {
-  private readonly client: Client;
-  readonly sql: string;
-  readonly args: BindValue[];
-
-  constructor(client: Client, sql: string, args: BindValue[] = []) {
-    this.client = client;
-    this.sql = sql;
-    this.args = args;
-  }
-
-  bind(...args: BindValue[]): LibsqlStatement {
-    return new LibsqlStatement(this.client, this.sql, args);
-  }
-
-  private async query(): Promise<SqlRow[]> {
-    const res = await this.client.execute({ sql: this.sql, args: this.args });
-    return plainRowsFromResult(res);
-  }
-
-  async first<T = SqlRow>(): Promise<T | null> {
-    const rows = await this.query();
-    // SAFETY: the caller names the column shape of the statement it prepared.
-    return (rows[0] as T | undefined) ?? null;
-  }
-
-  async run(): Promise<void> {
-    await this.client.execute({ sql: this.sql, args: this.args });
-  }
-
-  async all<T = SqlRow>(): Promise<{ results: T[] }> {
-    const rows = await this.query();
-    // SAFETY: the caller names the column shape of the statement it prepared.
-    return { results: rows as T[] };
-  }
-}
-
-class LibsqlDb implements SyncDb {
-  private readonly client: Client;
-
-  constructor(client: Client) {
-    this.client = client;
-  }
-
-  prepare(sql: string): SyncStatement {
-    return new LibsqlStatement(this.client, sql);
-  }
-
-  async batch<T = SqlRow>(
-    statements: SyncStatement[],
-  ): Promise<{ results: T[] }[]> {
-    // SAFETY: prepare() is the only source of a SyncStatement and returns LibsqlStatement.
-    const stmts = (statements as LibsqlStatement[]).map(s => ({
-      sql: s.sql,
-      args: s.args,
-    }));
-    const results = await this.client.batch(stmts, 'write');
-    // SAFETY: the caller names the column shape of the statements it prepared.
-    return results.map(res => ({ results: plainRowsFromResult(res) as T[] }));
-  }
-}
-
-/**
- * Build one client per request. A client shared at module level queues
- * queries behind its concurrency limit, and Workers cannot resolve one
- * request's I/O from another request's context. The runtime then cancels
- * the waiting request as hung and Cloudflare returns a 500.
- */
 export function getDb(env: Env): SyncDb {
-  const url = env.TURSO_DATABASE_URL?.replace(/^libsql:\/\//, 'https://');
-  if (!url) {
-    throw new Error('TURSO_DATABASE_URL is not set');
-  }
-
-  return new LibsqlDb(
-    createClient({
-      url,
-      authToken: env.TURSO_AUTH_TOKEN,
-    }),
-  );
+  return createLibsqlDb(env);
 }

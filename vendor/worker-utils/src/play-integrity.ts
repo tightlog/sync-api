@@ -1,7 +1,6 @@
+import { sha256HexOfText } from './sha256';
 import { z } from 'zod';
 import { commaList } from './comma-list';
-
-export const PLAY_INTEGRITY_HEADER = 'x-play-integrity';
 
 export const PLAY_INTEGRITY_TOKEN_MAX_LENGTH = 16_384;
 
@@ -18,7 +17,7 @@ const DEVICE_VERDICTS = new Set([
   'MEETS_STRONG_INTEGRITY',
 ]);
 
-export class PlayIntegrityError extends Error {
+class PlayIntegrityError extends Error {
   readonly kind: 'rejected' | 'unavailable';
 
   constructor(kind: 'rejected' | 'unavailable', message: string) {
@@ -399,7 +398,7 @@ async function decodeForPackage(
   return parsePlayIntegrityPayload(await response.json());
 }
 
-export async function decodePlayIntegrityToken(options: {
+async function decodePlayIntegrityToken(options: {
   token: string;
   packageNames: string[];
   serviceAccountJson: string;
@@ -434,16 +433,6 @@ export async function decodePlayIntegrityToken(options: {
   );
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest), byte =>
-    byte.toString(16).padStart(2, '0'),
-  ).join('');
-}
-
 export async function verifyPlayIntegrityToken(options: {
   token: string;
   requestHash: string;
@@ -472,7 +461,7 @@ export async function verifyPlayIntegrityToken(options: {
       return { ok: false, status: 401, error: judged.error };
     }
 
-    return { ok: true, tokenHash: await sha256Hex(options.token) };
+    return { ok: true, tokenHash: await sha256HexOfText(options.token) };
   } catch (error) {
     if (error instanceof PlayIntegrityError) {
       return {

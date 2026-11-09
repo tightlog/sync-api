@@ -8,7 +8,7 @@ CLERK_SECRET_KEY=
 CLERK_JWT_KEY=
 
 # RevenueCat secret key. Optional: without it, purchase-based restore returns 501.
-REVENUECAT_SECRET_API_KEY=
+REVENUECAT_SECRET_KEY=
 
 # Encrypts recovery-key escrow blobs at rest. Required for escrow routes.
 KEY_ESCROW_SECRET=

@@ -1,33 +1,29 @@
-import { extractSyncKey } from '../../auth';
+import { json } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import { encryptKeyEscrow } from '../../key-escrow';
 import { SyncRepo } from '../../repo';
 import type { Env } from '../../types';
-import { authenticate } from '../../utils/authenticate';
+import { authenticateCaller } from '../../utils/authenticate';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
 export async function handleEscrowKey(
   request: Request,
   env: Env,
 ): Promise<Response> {
-  const keyHash = await authenticate(request, env, env.SYNC_RATE_LIMITER);
-  if (keyHash instanceof Response) {
-    return keyHash;
+  const caller = await authenticateCaller(request, env, env.SYNC_RATE_LIMITER);
+  if (caller instanceof Response) {
+    return caller;
   }
 
   const secret = env.KEY_ESCROW_SECRET;
   if (!secret) {
-    return Response.json({ error: 'not_configured' }, { status: 501 });
-  }
-
-  const token = extractSyncKey(request);
-  if (!token) {
-    return Response.json({ error: 'unauthorized' }, { status: 401 });
+    return json<SyncErrorBody>({ error: 'not_configured' }, 501);
   }
 
   const repo = new SyncRepo(getDb(env));
-  const user = await repo.getOrCreateUser(keyHash);
-  const ciphertext = await encryptKeyEscrow(secret, token);
+  const user = await repo.getOrCreateUser(caller.keyHash);
+  const ciphertext = await encryptKeyEscrow(secret, caller.token);
   await repo.setKeyEscrow(user.id, ciphertext).run();
 
-  return Response.json({ ok: true });
+  return json({ ok: true });
 }

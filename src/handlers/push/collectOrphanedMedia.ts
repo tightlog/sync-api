@@ -1,3 +1,4 @@
+import { bestEffort } from '@tightlog/worker-utils';
 import { mediaKey } from '../../media';
 import type { SyncRepo } from '../../repo';
 import { mediaBasenameOf } from '../../tables';
@@ -33,7 +34,11 @@ export async function collectOrphanedMedia(
   }
 
   await repo.deleteMediaObjects(userId, orphaned);
-  await Promise.allSettled(
-    orphaned.map(basename => bucket.delete(mediaKey(userId, basename))),
+  await Promise.all(
+    orphaned.map(basename =>
+      bestEffort('media-delete', () =>
+        bucket.delete(mediaKey(userId, basename)),
+      ),
+    ),
   );
 }

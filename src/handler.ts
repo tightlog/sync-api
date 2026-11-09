@@ -1,11 +1,20 @@
+import { getDb } from './db';
+import {
+  handleAttestChallenge,
+  handleAttestRegister,
+} from '@tightlog/worker-utils/attest';
+import { tursoAttestStore } from '@tightlog/worker-utils/attest-turso';
 import * as Sentry from '@sentry/cloudflare';
 import { handleAdopt } from './handlers/adopt/handleAdopt';
 import { handleAdoptPurchase } from './handlers/adopt/handleAdoptPurchase';
-import { handleAttestChallenge } from './handlers/attest/handleAttestChallenge';
-import { handleAttestRegister } from './handlers/attest/handleAttestRegister';
 import { handleEscrowKey } from './handlers/escrow/handleEscrowKey';
 import { handleEscrowKeyDelete } from './handlers/escrow/handleEscrowKeyDelete';
-import { clientIp, handleHealth, rateLimited } from '@tightlog/worker-utils';
+import {
+  json,
+  clientIp,
+  handleHealth,
+  rateLimited,
+} from '@tightlog/worker-utils';
 import { handleIdentityProbe } from './handlers/identity/handleIdentityProbe';
 import { handleMediaGet } from './handlers/media/handleMediaGet';
 import { handleMediaPut } from './handlers/media/handleMediaPut';
@@ -15,23 +24,27 @@ import { handlePush } from './handlers/push/handlePush';
 import { handleRecoveryNoticesAck } from './handlers/recovery/handleRecoveryNoticesAck';
 import { handleRecoveryNoticesPull } from './handlers/recovery/handleRecoveryNoticesPull';
 import { handleRegister } from './handlers/register/handleRegister';
+import { SyncBoundaryOverflowError } from './repo';
 import type { Env } from './types';
+import { attestPaths } from '@tightlog/protocol/attest';
+import { syncPaths } from '@tightlog/protocol/sync';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
-const MEDIA_PATH = /^\/v1\/sync\/media\/([^/]+)$/;
-const TABLE_PATH = /^\/v1\/sync\/([^/]+)$/;
+const MEDIA_PATH = new RegExp(`^${syncPaths.media('([^/]+)')}$`);
+const TABLE_PATH = new RegExp(`^${syncPaths.table('([^/]+)')}$`);
 
 type Route = (request: Request, env: Env) => Response | Promise<Response>;
 
 const ROUTES = new Map<string, Route>([
-  ['POST /v1/sync/register', handleRegister],
-  ['POST /v1/sync/adopt', handleAdopt],
-  ['POST /v1/sync/adopt-purchase', handleAdoptPurchase],
-  ['GET /v1/sync/identity', handleIdentityProbe],
-  ['POST /v1/sync/escrow-key', handleEscrowKey],
-  ['DELETE /v1/sync/escrow-key', handleEscrowKeyDelete],
-  ['GET /v1/sync/recovery-notices', handleRecoveryNoticesPull],
-  ['POST /v1/sync/recovery-notices/ack', handleRecoveryNoticesAck],
-  ['POST /v1/sync/media/status', handleMediaStatus],
+  [`POST ${syncPaths.register}`, handleRegister],
+  [`POST ${syncPaths.adopt}`, handleAdopt],
+  [`POST ${syncPaths.adoptPurchase}`, handleAdoptPurchase],
+  [`GET ${syncPaths.identity}`, handleIdentityProbe],
+  [`POST ${syncPaths.escrowKey}`, handleEscrowKey],
+  [`DELETE ${syncPaths.escrowKey}`, handleEscrowKeyDelete],
+  [`GET ${syncPaths.recoveryNotices}`, handleRecoveryNoticesPull],
+  [`POST ${syncPaths.recoveryNoticesAck}`, handleRecoveryNoticesAck],
+  [`POST ${syncPaths.mediaStatus}`, handleMediaStatus],
 ]);
 
 async function dispatch(
@@ -48,7 +61,7 @@ async function dispatch(
   }
 
   if (
-    (pathname === '/attest/challenge' || pathname === '/attest/register') &&
+    (pathname === attestPaths.challenge || pathname === attestPaths.register) &&
     method === 'POST'
   ) {
     const limited = await rateLimited(
@@ -60,9 +73,10 @@ async function dispatch(
       return limited;
     }
 
-    return pathname === '/attest/challenge'
-      ? handleAttestChallenge(env)
-      : handleAttestRegister(request, env);
+    const store = tursoAttestStore(getDb(env));
+    return pathname === attestPaths.challenge
+      ? handleAttestChallenge(env, store)
+      : handleAttestRegister(request, env, store);
   }
 
   const route = ROUTES.get(`${method} ${pathname}`);
@@ -101,7 +115,7 @@ async function dispatch(
     }
   }
 
-  return Response.json({ error: 'not_found' }, { status: 404 });
+  return json<SyncErrorBody>({ error: 'not_found' }, 404);
 }
 
 export const handler = {
@@ -115,15 +129,11 @@ export const handler = {
     } catch (error) {
       console.error('unhandled sync error', error);
       Sentry.captureException(error);
-      const message = error instanceof Error ? error.message : '';
-      if (message === 'sync_boundary_overflow') {
-        return Response.json(
-          { error: 'sync_boundary_overflow' },
-          { status: 503 },
-        );
+      if (error instanceof SyncBoundaryOverflowError) {
+        return json({ error: error.message }, 503);
       }
 
-      return Response.json({ error: 'internal_error' }, { status: 500 });
+      return json<SyncErrorBody>({ error: 'internal_error' }, 500);
     }
   },
 } satisfies ExportedHandler<Env>;

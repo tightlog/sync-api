@@ -2,7 +2,6 @@ const BASENAME_PATTERN = /^([a-f0-9]{64})\.([a-z0-9]{2,4})$/;
 
 export const MAX_MEDIA_BYTES = 100 * 1024 * 1024;
 
-// Per-user ceiling across all uploaded media objects.
 export const MAX_USER_MEDIA_BYTES = 2 * 1024 * 1024 * 1024;
 export const MAX_USER_MEDIA_OBJECTS = 2_000;
 export const MAX_STATUS_NAMES = 500;

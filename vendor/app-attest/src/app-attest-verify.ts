@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { AsnParser } from '@peculiar/asn1-schema';
 import { SubjectPublicKeyInfo } from '@peculiar/asn1-x509';
 import { decode as cborDecode } from 'cbor-x';

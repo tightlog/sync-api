@@ -1,3 +1,5 @@
+import type { RegisterResponse, SyncErrorBody } from '@tightlog/protocol/sync';
+import { json, parseJsonBody } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import type { UserMeta } from '../../repo';
 import { SyncRepo } from '../../repo';
@@ -5,7 +7,6 @@ import { canClaimRevenueCatId } from '../../revenuecat';
 import { clerkService } from '../../services/clerk-service';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
-import { parseBody } from '../../validation/parseBody';
 import { metaBodyLimit, registerSchema } from '../../validation/register';
 
 export async function handleRegister(
@@ -18,7 +19,7 @@ export async function handleRegister(
     return keyHash;
   }
 
-  const input = await parseBody(request, metaBodyLimit, registerSchema);
+  const input = await parseJsonBody(request, metaBodyLimit, registerSchema);
 
   if (input instanceof Response) {
     return input;
@@ -43,10 +44,7 @@ export async function handleRegister(
 
     const linkedElsewhere = await repo.getUserByClerkId(identity.clerkUserId);
     if (linkedElsewhere && linkedElsewhere.id !== user.id) {
-      return Response.json(
-        { error: 'clerk_linked_elsewhere' },
-        { status: 409 },
-      );
+      return json<SyncErrorBody>({ error: 'clerk_linked_elsewhere' }, 409);
     }
 
     meta.clerkUserId = identity.clerkUserId;
@@ -83,8 +81,9 @@ export async function handleRegister(
 
   await repo.batch(statements);
 
-  return Response.json({
+  const response: RegisterResponse = {
     userId: user.id,
     hasKeyEscrow: user.keyEscrow !== null,
-  });
+  };
+  return json(response);
 }

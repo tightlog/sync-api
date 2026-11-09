@@ -1,0 +1,20 @@
+{
+  "name": "@tightlog/protocol",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./ai": "./src/ai.ts",
+    "./attest": "./src/attest.ts",
+    "./coach": "./src/coach.ts",
+    "./errors": "./src/errors.ts",
+    "./json": "./src/json.ts",
+    "./path": "./src/path.ts",
+    "./push": "./src/push.ts",
+    "./social": "./src/social.ts",
+    "./sync": "./src/sync.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.1"
+  }
+}

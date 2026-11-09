@@ -1,13 +1,7 @@
 import { json } from './json';
 import { checkContentLength } from './request-size';
 
-export type ErrorResponder = (
-  body: { error: string },
-  status: number,
-) => Response;
-
 export interface ReadJsonBodyOptions {
-  respond?: ErrorResponder;
   requireContentLength?: boolean;
 }
 
@@ -18,11 +12,11 @@ export type JsonBodyResult =
 export async function readJsonBody(
   request: Request,
   maxBytes: number,
-  { respond = json, requireContentLength = false }: ReadJsonBodyOptions = {},
+  { requireContentLength = false }: ReadJsonBodyOptions = {},
 ): Promise<JsonBodyResult> {
   const fail = (error: string, status: number): JsonBodyResult => ({
     ok: false,
-    response: respond({ error }, status),
+    response: json({ error }, status),
   });
 
   const length = checkContentLength(request, maxBytes);

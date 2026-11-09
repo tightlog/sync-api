@@ -1,6 +1,8 @@
+import { json, r2Get } from '@tightlog/worker-utils';
 import { isMediaBasename, mediaKey } from '../../media';
 import type { Env } from '../../types';
 import { mediaCaller } from './mediaCaller';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
 export async function handleMediaGet(
   request: Request,
@@ -8,7 +10,7 @@ export async function handleMediaGet(
   basename: string,
 ): Promise<Response> {
   if (!isMediaBasename(basename)) {
-    return Response.json({ error: 'invalid_basename' }, { status: 400 });
+    return json<SyncErrorBody>({ error: 'invalid_basename' }, 400);
   }
 
   const caller = await mediaCaller(request, env);
@@ -17,30 +19,7 @@ export async function handleMediaGet(
     return caller;
   }
 
-  const { bucket } = caller;
-  const ifNoneMatch = request.headers
-    .get('if-none-match')
-    ?.replace(/^W\//, '')
-    .replaceAll(/^"|"$/g, '');
-
-  const object = await bucket.get(
-    mediaKey(caller.userId, basename),
-    ifNoneMatch ? { onlyIf: { etagDoesNotMatch: ifNoneMatch } } : undefined,
-  );
-
-  if (!object) {
-    return Response.json({ error: 'not_found' }, { status: 404 });
-  }
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  headers.set('etag', object.httpEtag);
-  headers.set('cache-control', 'private, max-age=31536000, immutable');
-
-  if (!('body' in object) || !object.body) {
-    return new Response(null, { status: 304, headers });
-  }
-
-  headers.set('content-length', String(object.size));
-  return new Response(object.body, { headers });
+  return r2Get(caller.bucket, mediaKey(caller.userId, basename), request, {
+    cacheControl: 'private, max-age=31536000, immutable',
+  });
 }

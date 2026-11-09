@@ -1,6 +1,5 @@
-export interface RateLimit {
-  limit(options: { key: string }): Promise<{ success: boolean }>;
-}
+import type { RateLimit } from '@tightlog/worker-utils';
+export type { RateLimit };
 
 export interface Env {
   TURSO_DATABASE_URL: string;
@@ -13,7 +12,8 @@ export interface Env {
   MEDIA?: R2Bucket;
   CLERK_SECRET_KEY?: string;
   CLERK_JWT_KEY?: string;
-  REVENUECAT_SECRET_API_KEY?: string;
+  REVENUECAT_SECRET_KEY?: string;
+  REVENUECAT_ENTITLEMENT_IDS?: string;
   E2E_REVENUECAT_APP_USER_ID?: string;
   KEY_ESCROW_SECRET?: string;
   APPLE_TEAM_ID?: string;

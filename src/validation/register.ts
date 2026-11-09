@@ -1,3 +1,4 @@
+import type { RegisterBody } from '@tightlog/protocol/sync';
 import { z } from 'zod';
 
 export const metaBodyLimit = 32 * 1024;
@@ -18,4 +19,4 @@ export const registerSchema = z.object({
   osName: metaStringSchema,
   osVersion: metaStringSchema,
   appVersion: metaStringSchema,
-});
+} satisfies Record<keyof RegisterBody, z.ZodType>);

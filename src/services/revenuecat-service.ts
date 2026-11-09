@@ -1,13 +1,15 @@
+import { json } from '@tightlog/worker-utils';
 import {
+  fetchSubscriber,
   hasActiveEntitlement,
-  isAppUserId,
-  isStoreTransactionId,
   ownsActiveSubscription,
-} from '../revenuecat';
-import type { SubscriberResponse } from '../revenuecat';
+  revenueCatSettings,
+} from '@tightlog/worker-utils/revenuecat';
+import { isAppUserId, isStoreTransactionId } from '../revenuecat';
 import type { Env } from '../types';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
-const REVENUECAT_API_BASE_URL = 'https://api.revenuecat.com/v1/subscribers';
+const LOOKUP_TIMEOUT_MS = 5000;
 
 export const revenueCatService = {
   verifyPurchaseIdentity: async (
@@ -16,64 +18,40 @@ export const revenueCatService = {
     storeTransactionId: string,
     nowMs: number,
   ): Promise<true | Response> => {
-    const secret = env.REVENUECAT_SECRET_API_KEY;
-    if (!secret) {
-      return Response.json({ error: 'not_configured' }, { status: 501 });
+    const settings = revenueCatSettings(env);
+    if (!settings) {
+      return json<SyncErrorBody>({ error: 'not_configured' }, 501);
     }
 
     if (!isAppUserId(appUserId)) {
-      return Response.json({ error: 'invalid_app_user_id' }, { status: 400 });
+      return json<SyncErrorBody>({ error: 'invalid_app_user_id' }, 400);
     }
 
     if (!storeTransactionId || !isStoreTransactionId(storeTransactionId)) {
-      return Response.json({ error: 'transaction_required' }, { status: 400 });
+      return json<SyncErrorBody>({ error: 'transaction_required' }, 400);
     }
 
-    let response: Response;
-    try {
-      response = await fetch(
-        `${REVENUECAT_API_BASE_URL}/${encodeURIComponent(appUserId)}`,
-        {
-          headers: {
-            authorization: `Bearer ${secret}`,
-            accept: 'application/json',
-          },
-        },
-      );
-    } catch {
-      return Response.json(
-        { error: 'revenuecat_unreachable' },
-        { status: 502 },
-      );
+    const lookup = await fetchSubscriber(
+      settings.secretKey,
+      appUserId,
+      LOOKUP_TIMEOUT_MS,
+    );
+    if (lookup.status === 'not_found') {
+      return json<SyncErrorBody>({ error: 'unknown_customer' }, 404);
     }
 
-    if (response.status === 404) {
-      return Response.json({ error: 'unknown_customer' }, { status: 404 });
+    if (lookup.status === 'unavailable') {
+      return json<SyncErrorBody>({ error: 'revenuecat_unreachable' }, 502);
     }
 
-    if (!response.ok) {
-      return Response.json(
-        { error: 'revenuecat_unreachable' },
-        { status: 502 },
-      );
+    if (
+      !hasActiveEntitlement(lookup.subscriber, settings.entitlementIds, nowMs)
+    ) {
+      return json<SyncErrorBody>({ error: 'no_active_entitlement' }, 403);
     }
 
-    let body: SubscriberResponse;
-    try {
-      body = await response.json();
-    } catch {
-      return Response.json(
-        { error: 'revenuecat_unreachable' },
-        { status: 502 },
-      );
-    }
-
-    if (!hasActiveEntitlement(body, nowMs)) {
-      return Response.json({ error: 'no_active_entitlement' }, { status: 403 });
-    }
-
-    if (!ownsActiveSubscription(body, storeTransactionId, nowMs)) {
-      return Response.json({ error: 'purchase_not_owned' }, { status: 403 });
+    if (!ownsActiveSubscription(lookup.subscriber, storeTransactionId, nowMs)) {
+      return json<SyncErrorBody>({ error: 'purchase_not_owned' }, 403);
     }
 
     return true;

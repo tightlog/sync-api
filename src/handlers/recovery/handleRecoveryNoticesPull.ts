@@ -1,3 +1,4 @@
+import { json } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import type { Env } from '../../types';
@@ -15,7 +16,7 @@ export async function handleRecoveryNoticesPull(
   const notices = await new SyncRepo(getDb(env)).listUnreadRecoveryNotices(
     keyHash,
   );
-  return Response.json({
+  return json({
     items: notices.map(notice => ({
       id: notice.id,
       kind: notice.kind,

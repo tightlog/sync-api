@@ -1,10 +1,14 @@
+import type {
+  MediaStatusResponse,
+  SyncErrorBody,
+} from '@tightlog/protocol/sync';
+import { json, parseJsonBody } from '@tightlog/worker-utils';
 import { isMediaBasename, MAX_STATUS_NAMES } from '../../media';
 import type { Env } from '../../types';
 import {
   mediaStatusBodyLimit,
   mediaStatusSchema,
 } from '../../validation/media';
-import { parseBody } from '../../validation/parseBody';
 import { mediaCaller } from './mediaCaller';
 
 export async function handleMediaStatus(
@@ -17,7 +21,7 @@ export async function handleMediaStatus(
     return caller;
   }
 
-  const body = await parseBody(
+  const body = await parseJsonBody(
     request,
     mediaStatusBodyLimit,
     mediaStatusSchema,
@@ -29,11 +33,11 @@ export async function handleMediaStatus(
 
   const { names } = body;
   if (names === null) {
-    return Response.json({ error: 'names_required' }, { status: 400 });
+    return json<SyncErrorBody>({ error: 'names_required' }, 400);
   }
 
   if (names.length > MAX_STATUS_NAMES) {
-    return Response.json({ error: 'too_many_names' }, { status: 413 });
+    return json<SyncErrorBody>({ error: 'too_many_names' }, 413);
   }
 
   const wanted = names.filter(isMediaBasename);
@@ -42,7 +46,8 @@ export async function handleMediaStatus(
     wanted,
   );
 
-  return Response.json({
+  const response: MediaStatusResponse = {
     missing: wanted.filter(name => !present.has(name)),
-  });
+  };
+  return json(response);
 }

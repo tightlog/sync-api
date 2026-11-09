@@ -149,8 +149,6 @@ const TABLE_FIELDS = {
 
 export type SyncTable = keyof typeof TABLE_FIELDS;
 
-export const SYNC_TABLES = Object.keys(TABLE_FIELDS) as SyncTable[];
-
 export function isSyncTable(value: string): value is SyncTable {
   return Object.hasOwn(TABLE_FIELDS, value);
 }

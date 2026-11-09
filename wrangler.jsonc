@@ -29,16 +29,14 @@
       },
       "vars": {
         "APP_ATTEST_ENV": "development",
+        "REVENUECAT_ENTITLEMENT_IDS": "fish-logbook Pro",
         "SENTRY_ENVIRONMENT": "staging",
-        "SENTRY_TRACES_SAMPLE_RATE": "1.0",
-        "DEPLOYED_AT": "unknown",
-        "DEPLOYED_BY": "unknown",
-        "GIT_SHA": "unknown"
+        "SENTRY_TRACES_SAMPLE_RATE": "1.0"
       },
       "ratelimits": [
         {
           "name": "SYNC_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 300,
             "period": 60
@@ -46,7 +44,7 @@
         },
         {
           "name": "SYNC_IP_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 600,
             "period": 60
@@ -54,7 +52,7 @@
         },
         {
           "name": "MEDIA_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 120,
             "period": 60
@@ -62,7 +60,7 @@
         },
         {
           "name": "ADOPT_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 10,
             "period": 60
@@ -70,7 +68,7 @@
         },
         {
           "name": "ATTEST_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 60,
             "period": 60
@@ -80,7 +78,7 @@
       "r2_buckets": [
         {
           "binding": "MEDIA",
-          "bucket_name": "<r2-bucket>"
+          "bucket_name": "r2-bucket-placeholder"
         }
       ]
     },
@@ -104,16 +102,14 @@
       },
       "vars": {
         "APP_ATTEST_ENV": "production",
+        "REVENUECAT_ENTITLEMENT_IDS": "fish-logbook Pro",
         "SENTRY_ENVIRONMENT": "production",
-        "SENTRY_TRACES_SAMPLE_RATE": "0.1",
-        "DEPLOYED_AT": "unknown",
-        "DEPLOYED_BY": "unknown",
-        "GIT_SHA": "unknown"
+        "SENTRY_TRACES_SAMPLE_RATE": "0.1"
       },
       "ratelimits": [
         {
           "name": "SYNC_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 300,
             "period": 60
@@ -121,7 +117,7 @@
         },
         {
           "name": "SYNC_IP_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 600,
             "period": 60
@@ -129,7 +125,7 @@
         },
         {
           "name": "MEDIA_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 120,
             "period": 60
@@ -137,7 +133,7 @@
         },
         {
           "name": "ADOPT_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 10,
             "period": 60
@@ -145,7 +141,7 @@
         },
         {
           "name": "ATTEST_RATE_LIMITER",
-          "namespace_id": "<rate-limit-namespace>",
+          "namespace_id": "rate-limit-namespace-placeholder",
           "simple": {
             "limit": 60,
             "period": 60
@@ -155,7 +151,7 @@
       "r2_buckets": [
         {
           "binding": "MEDIA",
-          "bucket_name": "<r2-bucket>"
+          "bucket_name": "r2-bucket-placeholder"
         }
       ]
     }

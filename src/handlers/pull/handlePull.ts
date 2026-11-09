@@ -1,9 +1,12 @@
+import { json } from '@tightlog/worker-utils';
+import { SYNC_SINCE_PARAM } from '@tightlog/protocol/sync';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import { schemaVersionError } from '../../schema';
 import { isSyncTable, syncRowFromDb } from '../../tables';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
 export async function handlePull(
   request: Request,
@@ -12,7 +15,7 @@ export async function handlePull(
   url: URL,
 ): Promise<Response> {
   if (!isSyncTable(table)) {
-    return Response.json({ error: 'unknown_table' }, { status: 404 });
+    return json<SyncErrorBody>({ error: 'unknown_table' }, 404);
   }
 
   const outdated = schemaVersionError(request);
@@ -25,7 +28,7 @@ export async function handlePull(
     return keyHash;
   }
 
-  const since = Number(url.searchParams.get('since') ?? 0);
+  const since = Number(url.searchParams.get(SYNC_SINCE_PARAM) ?? 0);
   const sinceMs = Number.isFinite(since) && since > 0 ? Math.trunc(since) : 0;
 
   const { rows, nextSince } = await new SyncRepo(getDb(env)).listSince(
@@ -33,7 +36,7 @@ export async function handlePull(
     keyHash,
     sinceMs,
   );
-  return Response.json({
+  return json({
     items: rows.map(row => syncRowFromDb(table, row)),
     nextSince,
   });

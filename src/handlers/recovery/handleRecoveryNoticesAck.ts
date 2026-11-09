@@ -1,8 +1,8 @@
+import { json, parseJsonBody } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
-import { parseBody } from '../../validation/parseBody';
 import { recoveryNoticesAckSchema } from '../../validation/recovery';
 import { metaBodyLimit } from '../../validation/register';
 
@@ -15,7 +15,7 @@ export async function handleRecoveryNoticesAck(
     return keyHash;
   }
 
-  const body = await parseBody(
+  const body = await parseJsonBody(
     request,
     metaBodyLimit,
     recoveryNoticesAckSchema,
@@ -30,5 +30,5 @@ export async function handleRecoveryNoticesAck(
     await new SyncRepo(getDb(env)).markRecoveryNoticesRead(keyHash, ids).run();
   }
 
-  return Response.json({ ok: true });
+  return json({ ok: true });
 }

@@ -1,5 +1,8 @@
-import { createClerkClient, verifyToken } from '@clerk/backend';
+import { createClerkClient } from '@clerk/backend';
 import type { Env } from '../types';
+import { json } from '@tightlog/worker-utils';
+import { verifyClerkToken } from '@tightlog/worker-utils/clerk';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
 export type ClerkIdentity = {
   clerkUserId: string;
@@ -24,29 +27,19 @@ export const clerkService = {
     env: Env,
     token: string,
   ): Promise<ClerkIdentity | Response> => {
-    const secretKey = env.CLERK_SECRET_KEY;
-    if (!secretKey) {
-      return Response.json({ error: 'not_configured' }, { status: 501 });
+    const verdict = await verifyClerkToken(token, env);
+    if (!verdict.ok) {
+      return verdict.reason === 'not_configured'
+        ? json<SyncErrorBody>({ error: 'not_configured' }, 501)
+        : json<SyncErrorBody>({ error: 'unauthorized' }, 401);
     }
 
-    let sub: string;
+    const sub = verdict.userId;
     try {
-      const payload = await verifyToken(token, {
-        secretKey,
-        jwtKey: env.CLERK_JWT_KEY,
-      });
-
-      if (!payload.sub) {
-        return Response.json({ error: 'unauthorized' }, { status: 401 });
-      }
-
-      sub = payload.sub;
-    } catch {
-      return Response.json({ error: 'unauthorized' }, { status: 401 });
-    }
-
-    try {
-      const user = await clerkClient(secretKey).users.getUser(sub);
+      // SAFETY: not_configured above guarantees the key is set here.
+      const user = await clerkClient(
+        env.CLERK_SECRET_KEY as string,
+      ).users.getUser(sub);
       const email =
         user.primaryEmailAddress?.emailAddress ??
         user.emailAddresses[0]?.emailAddress ??

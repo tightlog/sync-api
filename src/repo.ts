@@ -3,6 +3,12 @@ import type { SanitizedRow, SyncTable } from './tables';
 import { dataColumns } from './tables';
 import type { SyncUser } from './types';
 
+export class SyncBoundaryOverflowError extends Error {
+  constructor() {
+    super('sync_boundary_overflow');
+  }
+}
+
 interface UserRow {
   id: string;
   key_hash: string;
@@ -40,9 +46,6 @@ const MAX_ACK_IDS = 200;
  */
 const READBACK_CHUNK = 99;
 
-/**
- * Upserts per Turso write batch. Keeps lock time and statement count bounded.
- */
 const UPSERT_CHUNK = 50;
 
 export const PULL_PAGE_SIZE = 200;
@@ -52,7 +55,7 @@ export const PULL_PAGE_SIZE = 200;
  * Every row at that ms must be in the same page, or the cursor skips rows.
  * Without a limit, a bulk stamp at one ms can use too much memory.
  */
-export const MAX_BOUNDARY_COHORT = 2_000;
+const MAX_BOUNDARY_COHORT = 2_000;
 
 export type IdentitySummary = {
   known: boolean;
@@ -66,7 +69,7 @@ export type UserMeta = {
   accountName?: string | null;
 };
 
-export type DeviceMeta = {
+type DeviceMeta = {
   deviceId: string;
   platform: string | null;
   model: string | null;
@@ -365,7 +368,7 @@ export class SyncRepo {
       .all();
 
     if (group.results.length >= MAX_BOUNDARY_COHORT) {
-      throw new Error('sync_boundary_overflow');
+      throw new SyncBoundaryOverflowError();
     }
 
     const seen = new Set(rows.map(row => row['id']));

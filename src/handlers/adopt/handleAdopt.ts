@@ -1,14 +1,16 @@
-import * as Sentry from '@sentry/cloudflare';
-import { adoptClerkChallenge, attestGate } from '../../attest';
+import { json, parseJsonBody } from '@tightlog/worker-utils';
+import { attestRejection } from '@tightlog/worker-utils/attest';
+import { adoptClerkChallenge } from '@tightlog/protocol/sync';
+import { tursoAttestGate } from '@tightlog/worker-utils/attest-turso';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import { clerkService } from '../../services/clerk-service';
 import type { Env } from '../../types';
 import { authenticate } from '../../utils/authenticate';
 import { adoptSchema } from '../../validation/adopt';
-import { parseBody } from '../../validation/parseBody';
 import { metaBodyLimit } from '../../validation/register';
 import { adoptIdentity } from './adoptIdentity';
+import type { SyncErrorBody } from '@tightlog/protocol/sync';
 
 export async function handleAdopt(
   request: Request,
@@ -19,14 +21,14 @@ export async function handleAdopt(
     return keyHash;
   }
 
-  const body = await parseBody(request, metaBodyLimit, adoptSchema);
+  const body = await parseJsonBody(request, metaBodyLimit, adoptSchema);
   if (body instanceof Response) {
     return body;
   }
 
   const { clerkToken } = body;
   if (!clerkToken) {
-    return Response.json({ error: 'clerk_token_required' }, { status: 400 });
+    return json<SyncErrorBody>({ error: 'clerk_token_required' }, 400);
   }
 
   const identity = await clerkService.verifyIdentity(env, clerkToken);
@@ -35,7 +37,7 @@ export async function handleAdopt(
   }
 
   const db = getDb(env);
-  const gate = await attestGate(
+  const gate = await tursoAttestGate(
     env,
     db,
     request.headers,
@@ -43,23 +45,13 @@ export async function handleAdopt(
   );
 
   if (!gate.ok) {
-    Sentry.captureMessage(`attest-gate rejected: ${gate.error}`, {
-      level: 'warning',
-      tags: { route: '/v1/sync/adopt', reason: gate.error },
-      fingerprint: ['attest-gate', gate.error],
-    });
-    return Response.json(
-      {
-        error: gate.status === 503 ? 'attestation_unavailable' : 'attestation',
-      },
-      { status: gate.status },
-    );
+    return attestRejection(gate, '/v1/sync/adopt');
   }
 
   const repo = new SyncRepo(db);
   const linked = await repo.getUserByClerkId(identity.clerkUserId);
   if (!linked) {
-    return Response.json({ error: 'no_linked_identity' }, { status: 404 });
+    return json<SyncErrorBody>({ error: 'no_linked_identity' }, 404);
   }
 
   return adoptIdentity(repo, linked, keyHash);

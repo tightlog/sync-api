@@ -4,11 +4,21 @@
   "private": true,
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./attest": "./src/attest.ts",
+    "./attest-turso": "./src/attest-turso.ts",
+    "./clerk": "./src/clerk.ts",
+    "./libsql": "./src/libsql.ts",
+    "./notify": "./src/notify.ts",
+    "./revenuecat": "./src/revenuecat.ts"
   },
   "types": "./src/index.ts",
   "dependencies": {
+    "@clerk/backend": "3.15.0",
+    "@libsql/client": "0.15.15",
     "@sentry/cloudflare": "10.67.0",
+    "@tightlog/app-attest": "file:../app-attest",
+    "@tightlog/protocol": "file:../protocol",
     "zod": "4.6.1"
   }
 }

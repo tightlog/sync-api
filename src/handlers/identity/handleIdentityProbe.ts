@@ -1,3 +1,4 @@
+import { json } from '@tightlog/worker-utils';
 import { getDb } from '../../db';
 import { SyncRepo } from '../../repo';
 import type { Env } from '../../types';
@@ -13,5 +14,5 @@ export async function handleIdentityProbe(
   }
 
   const summary = await new SyncRepo(getDb(env)).getIdentitySummary(keyHash);
-  return Response.json(summary);
+  return json(summary);
 }

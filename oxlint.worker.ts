@@ -1,5 +1,6 @@
 import nkzw from '@nkzw/oxlint-config';
 import { defineConfig } from 'oxlint';
+import { sharedRules, stylePlugin } from './oxlint.shared.ts';
 import type { LocalOxlintConfig } from './oxlint.types.ts';
 
 const local = {
@@ -32,12 +33,6 @@ const local = {
       },
     ],
     'require-await': 'off',
-    'no-empty': [
-      'error',
-      {
-        allowEmptyCatch: true,
-      },
-    ],
     'no-unused-vars': [
       'error',
       {
@@ -88,7 +83,6 @@ const local = {
     'unicorn/prefer-array-find': 'error',
     'unicorn/prefer-array-flat-map': 'error',
     'unicorn/prefer-includes': 'error',
-    'unicorn/prefer-node-protocol': 'error',
     'unicorn/prefer-string-starts-ends-with': 'error',
     'max-classes-per-file': 'off',
     'max-lines': 'off',
@@ -156,7 +150,6 @@ const local = {
         'import/no-nodejs-modules': 'off',
         'typescript/no-deprecated': 'off',
         'typescript/no-non-null-assertion': 'off',
-        'unicorn/no-array-sort': 'off',
         'unicorn/no-immediate-mutation': 'off',
       },
     },
@@ -166,7 +159,6 @@ const local = {
         'import/no-nodejs-modules': 'off',
         'no-console': 'off',
         'promise/no-multiple-resolved': 'off',
-        'unicorn/no-array-sort': 'off',
         'unicorn/prefer-import-meta-properties': 'off',
       },
     },
@@ -206,37 +198,11 @@ export default defineConfig({
     ...(nkzw.plugins ?? []),
     ...(['typescript', 'unicorn', 'oxc', 'import', 'promise'] as const),
   ],
-  jsPlugins: [...(nkzw.jsPlugins ?? [])],
+  jsPlugins: [...(nkzw.jsPlugins ?? []), stylePlugin],
+  ignorePatterns: ['dist/**', '.wrangler/**', 'worker-configuration.d.ts'],
   ...local,
   rules: {
     ...local.rules,
-    'perfectionist/sort-enums': 'off',
-    'perfectionist/sort-heritage-clauses': 'off',
-    'perfectionist/sort-interfaces': 'off',
-    'perfectionist/sort-jsx-props': 'off',
-    'perfectionist/sort-object-types': 'off',
-    'perfectionist/sort-objects': 'off',
-    'import-x/no-namespace': 'off',
-    'unicorn/consistent-function-scoping': 'off',
-    '@nkzw/no-instanceof': 'off',
-    '@nkzw/ensure-relay-types': 'off',
-    'react/immutability': 'off',
-    'react/refs': 'off',
-    'unicorn/prefer-string-slice': 'off',
-    'unicorn/catch-error-name': 'off',
-    'unicorn/numeric-separators-style': 'off',
-    'unicorn/prefer-string-replace-all': 'off',
-    'unicorn/prefer-at': 'off',
-    'unicorn/prefer-single-call': 'off',
-    'unicorn/prefer-array-index-of': 'off',
-    'unicorn/prefer-node-protocol': 'off',
-    'unicorn/prefer-string-raw': 'off',
-    'unicorn/no-hex-escape': 'off',
-    'prefer-arrow-callback': 'off',
-    'object-shorthand': 'off',
-    'no-empty': 'off',
-    'unicorn/prefer-number-properties': 'off',
-    '@typescript-eslint/array-type': ['error', { default: 'array' }],
-    'typescript/array-type': ['error', { default: 'array' }],
+    ...sharedRules,
   },
 } satisfies LocalOxlintConfig);
